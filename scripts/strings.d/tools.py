@@ -14,6 +14,8 @@ STRINGS = {
     "system.cpu": ("CPU", "İşlemci", "CPU"),
     "system.memory": ("Memory", "Bellek", "Speicher"),
     "system.memoryDetail": ("%@ of %@", "%@ / %@", "%@ von %@"),
+    "system.lastHour": ("Last hour", "Son 1 saat", "Letzte Stunde"),
+    "system.total": ("Total", "Toplam", "Gesamt"),
     "system.network": ("Network", "Ağ", "Netzwerk"),
     "system.openMonitor": ("Open Activity Monitor", "Etkinlik Monitörü'nü aç", "Aktivitätsanzeige öffnen"),
     "system.show": ("Show system status (CPU, memory, network)", "Sistem durumunu göster (işlemci, bellek, ağ)", "Systemstatus zeigen (CPU, Speicher, Netzwerk)"),

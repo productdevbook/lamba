@@ -313,12 +313,14 @@
 "stats.privacy" = "İstatistikler yalnızca bu Mac'te saklanır.";
 "streak.days" = "%d gün";
 "system.cpu" = "İşlemci";
+"system.lastHour" = "Son 1 saat";
 "system.memory" = "Bellek";
 "system.memoryDetail" = "%@ / %@";
 "system.network" = "Ağ";
 "system.openMonitor" = "Etkinlik Monitörü'nü aç";
 "system.show" = "Sistem durumunu göster (işlemci, bellek, ağ)";
 "system.title" = "Sistem";
+"system.total" = "Toplam";
 "toggles.button" = "Hızlı anahtarlar";
 "toggles.darkMode" = "Koyu mod";
 "toggles.dnd" = "Rahatsız Etme";

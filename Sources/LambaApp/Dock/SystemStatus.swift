@@ -9,6 +9,8 @@ extension L10n {
     static let systemNetwork = tr("system.network")
     static let systemOpenMonitor = tr("system.openMonitor")
     static let systemShow = tr("system.show")
+    static let systemLastHour = tr("system.lastHour")
+    static let systemTotal = tr("system.total")
     static func systemMemoryDetail(_ used: String, _ total: String) -> String { format("system.memoryDetail", used, total) }
 }
 
@@ -21,6 +23,16 @@ final class SystemStatus: ObservableObject {
     let memoryTotal = ProcessInfo.processInfo.physicalMemory
     @Published private(set) var downPerSecond: Double = 0
     @Published private(set) var upPerSecond: Double = 0
+    /// Network use per minute over the last hour, oldest first; older minutes drop off.
+    struct Minute: Equatable {
+        let start: Date
+        var down: UInt64
+        var up: UInt64
+    }
+    @Published private(set) var networkMinutes: [Minute] = []
+    var hourDown: UInt64 { networkMinutes.reduce(0) { $0 + $1.down } }
+    var hourUp: UInt64 { networkMinutes.reduce(0) { $0 + $1.up } }
+
     /// Last minute of CPU use, oldest first.
     @Published private(set) var cpuHistory: [Double] = []
 
@@ -48,11 +60,29 @@ final class SystemStatus: ObservableObject {
         let bytes = Self.networkBytes(), now = Date()
         if let last = lastBytes {
             let seconds = max(now.timeIntervalSince(last.at), 0.1)
-            downPerSecond = Double(bytes.down &- last.down) / seconds
-            upPerSecond = Double(bytes.up &- last.up) / seconds
-            if bytes.down < last.down || bytes.up < last.up { downPerSecond = 0; upPerSecond = 0 }
+            if bytes.down >= last.down, bytes.up >= last.up {
+                downPerSecond = Double(bytes.down - last.down) / seconds
+                upPerSecond = Double(bytes.up - last.up) / seconds
+                record(down: bytes.down - last.down, up: bytes.up - last.up, at: now)
+            } else {
+                // Counters reset (interface went away); skip this sample.
+                downPerSecond = 0
+                upPerSecond = 0
+            }
         }
         lastBytes = (bytes.down, bytes.up, now)
+    }
+
+    private func record(down: UInt64, up: UInt64, at now: Date) {
+        let minute = Date(timeIntervalSinceReferenceDate: (now.timeIntervalSinceReferenceDate / 60).rounded(.down) * 60)
+        var minutes = networkMinutes.filter { $0.start > now.addingTimeInterval(-3600) }
+        if minutes.last?.start == minute {
+            minutes[minutes.count - 1].down += down
+            minutes[minutes.count - 1].up += up
+        } else {
+            minutes.append(Minute(start: minute, down: down, up: up))
+        }
+        networkMinutes = minutes
     }
 
     private static func cpuTicks() -> (busy: UInt64, total: UInt64)? {
@@ -198,6 +228,7 @@ struct SystemStatusPopover: View {
                 Label(SystemStatus.rate(status.upPerSecond), systemImage: "arrow.up")
             }
             .font(.system(size: 11.5).monospacedDigit())
+            NetworkHour(status: status)
 
             Button {
                 DockPopover.shared.close()
@@ -261,5 +292,64 @@ private struct Sparkline: View {
         return values.enumerated().map { index, value in
             CGPoint(x: offset + CGFloat(index) * step, y: size.height - 2 - CGFloat(min(max(value, 0), 1)) * (size.height - 4))
         }
+    }
+}
+
+/// Totals for the last hour and a bar per minute (download up, upload down from the middle line).
+private struct NetworkHour: View {
+    @ObservedObject var status: SystemStatus
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text(L10n.systemLastHour).font(.system(size: 11)).foregroundStyle(.secondary)
+                Spacer()
+                Text("\(L10n.systemTotal) \(bytes(status.hourDown + status.hourUp))")
+                    .font(.system(size: 11, weight: .semibold).monospacedDigit())
+            }
+            bars.frame(height: 40)
+            HStack(spacing: 10) {
+                legend(Color.accentColor, "arrow.down", bytes(status.hourDown))
+                legend(Color.green, "arrow.up", bytes(status.hourUp))
+                Spacer()
+            }
+        }
+        .padding(10)
+        .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Color.white.opacity(0.05)))
+    }
+
+    private var bars: some View {
+        GeometryReader { proxy in
+            let minutes = status.networkMinutes
+            let peak = max(minutes.map { max($0.down, $0.up) }.max() ?? 1, 1)
+            let width = proxy.size.width / 60
+            let half = proxy.size.height / 2
+            ZStack(alignment: .topLeading) {
+                Rectangle().fill(Color.white.opacity(0.12)).frame(height: 0.5).offset(y: half)
+                ForEach(Array(minutes.enumerated()), id: \.element.start) { index, minute in
+                    let x = CGFloat(60 - minutes.count + index) * width
+                    let down = max(1, half * CGFloat(Double(minute.down) / Double(peak)))
+                    let up = max(1, half * CGFloat(Double(minute.up) / Double(peak)))
+                    RoundedRectangle(cornerRadius: 1).fill(Color.accentColor)
+                        .frame(width: max(1, width - 1), height: down)
+                        .offset(x: x, y: half - down)
+                    RoundedRectangle(cornerRadius: 1).fill(Color.green.opacity(0.85))
+                        .frame(width: max(1, width - 1), height: up)
+                        .offset(x: x, y: half)
+                }
+            }
+        }
+    }
+
+    private func legend(_ color: Color, _ symbol: String, _ value: String) -> some View {
+        HStack(spacing: 4) {
+            Circle().fill(color).frame(width: 6, height: 6)
+            Image(systemName: symbol).font(.system(size: 9, weight: .bold)).foregroundStyle(.secondary)
+            Text(value).font(.system(size: 11).monospacedDigit())
+        }
+    }
+
+    private func bytes(_ value: UInt64) -> String {
+        ByteCountFormatter.string(fromByteCount: Int64(value), countStyle: .file)
     }
 }

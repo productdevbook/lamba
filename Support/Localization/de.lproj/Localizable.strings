@@ -313,12 +313,14 @@
 "stats.privacy" = "Statistiken werden nur auf diesem Mac gespeichert.";
 "streak.days" = "%d Tage";
 "system.cpu" = "CPU";
+"system.lastHour" = "Letzte Stunde";
 "system.memory" = "Speicher";
 "system.memoryDetail" = "%@ von %@";
 "system.network" = "Netzwerk";
 "system.openMonitor" = "Aktivitätsanzeige öffnen";
 "system.show" = "Systemstatus zeigen (CPU, Speicher, Netzwerk)";
 "system.title" = "System";
+"system.total" = "Gesamt";
 "toggles.button" = "Schnellschalter";
 "toggles.darkMode" = "Dunkelmodus";
 "toggles.dnd" = "Nicht stören";
