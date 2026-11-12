@@ -34,28 +34,7 @@ struct StripDockView: View {
             LambaModule(model: model)
             LiveCapsules(model: model, meetings: meetings, nowPlaying: nowPlaying)
             ModuleDivider()
-            // While a session's finish is announced, the apps step aside and their space becomes
-            // the notification; the Lamba module, capsules and status stay. Same size, no jump.
-            HStack(spacing: 6) {
-                ForEach(dock.pinned) { chip(for: $0) }
-                if !dock.others.isEmpty {
-                    ModuleDivider()
-                    ForEach(dock.others) { chip(for: $0) }
-                }
-            }
-            .opacity(model.announcement == nil ? 1 : 0)
-            .scaleEffect(model.announcement == nil ? 1 : 0.96)
-            .allowsHitTesting(model.announcement == nil)
-            .overlay {
-                if let session = model.announcement {
-                    FinishedBanner(session: session) {
-                        model.dismissAnnouncement()
-                        model.showAgent(session)
-                    }
-                    .transition(.opacity.combined(with: .scale(scale: 1.04)))
-                }
-            }
-            .animation(.spring(response: 0.4, dampingFraction: 0.85), value: model.announcement?.id)
+            apps
             ModuleDivider()
             StatusModule(chargeState: model.chargeState)
             TrashChip()
@@ -67,11 +46,45 @@ struct StripDockView: View {
         .environment(\.colorScheme, .dark)
         .padding(.bottom, StripMetrics.bottomMargin)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-        .animation(.spring(response: 0.32, dampingFraction: 0.82), value: (dock.pinned + dock.others).map(\.isActive))
-        .animation(.easeOut(duration: 0.2), value: dock.slots.map(\.id))
+        .animation(.spring(response: 0.32, dampingFraction: 0.82), value: activeStates)
+        .animation(.easeOut(duration: 0.2), value: slotIDs)
         .onPreferenceChange(ChipFrames.self) { chipFrames = $0 }
-        .onChange(of: (dock.pinned + dock.others).filter(\.isRunning).map(\.path)) { running in
+        .onChange(of: runningPaths) { running in
             launching.subtract(running)
+        }
+    }
+
+    private var allItems: [DockItem] { dock.pinned + dock.others }
+    private var activeStates: [Bool] { allItems.map(\.isActive) }
+    private var slotIDs: [String] { dock.slots.map(\.id) }
+    private var runningPaths: [String] { allItems.filter(\.isRunning).map(\.path) }
+
+    /// While a session's finish is announced, the apps step aside and their space becomes the
+    /// notification; the Lamba module, capsules and status stay. Same size, no jump.
+    private var apps: some View {
+        let isAnnouncing = model.announcement != nil
+        return HStack(spacing: 6) {
+            ForEach(dock.pinned) { chip(for: $0) }
+            if !dock.others.isEmpty {
+                ModuleDivider()
+                ForEach(dock.others) { chip(for: $0) }
+            }
+        }
+        .opacity(isAnnouncing ? 0 : 1)
+        .scaleEffect(isAnnouncing ? 0.96 : 1)
+        .allowsHitTesting(!isAnnouncing)
+        .overlay { banner }
+        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: model.announcement?.id)
+    }
+
+    @ViewBuilder
+    private var banner: some View {
+        if let session = model.announcement {
+            FinishedBanner(session: session) {
+                model.dismissAnnouncement()
+                model.showAgent(session)
+            }
+            .transition(.opacity.combined(with: .scale(scale: 1.04)))
         }
     }
 
