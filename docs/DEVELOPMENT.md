@@ -186,7 +186,8 @@ Release notes in `release-notes/<version>.html` are shown in the update window.
 |---|---|
 | `MACOS_CERTIFICATE`, `MACOS_CERTIFICATE_PASSWORD` | Developer ID Application certificate as base64 `.p12`, and its password |
 | `KEYCHAIN_PASSWORD` | any string, for the temporary keychain |
-| `APPLE_ID`, `APPLE_APP_PASSWORD`, `APPLE_TEAM_ID` | notarization |
+| `APPLE_TEAM_ID` | `QPH96J479A` |
+| `ASC_KEY_P8`, `ASC_KEY_ID`, `ASC_ISSUER_ID` | App Store Connect API key for notarization |
 | `SPARKLE_PRIVATE_KEY` | contents of the exported `lamba-sparkle.key` |
 | `HOMEBREW_TAP_DEPLOY_KEY` | write-enabled deploy key of `productdevbook/homebrew-tap` (the one PortKiller uses); the release updates `Casks/lamba.rb` |
 
