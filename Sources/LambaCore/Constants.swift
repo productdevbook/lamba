@@ -1,7 +1,7 @@
 import Foundation
 
 public enum LambaVersion {
-    public static let current = "0.1.0"
+    public static let current = "0.1.1"
     /// Bump whenever the app <-> helper protocol changes; the app reinstalls a mismatched helper.
     public static let helperProtocol = 2
 }
