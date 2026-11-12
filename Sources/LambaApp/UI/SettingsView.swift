@@ -6,7 +6,7 @@ import SwiftUI
 struct SettingsView: View {
     enum Tab: String, Hashable, CaseIterable, Identifiable {
         case general, dock, contexts, integrations, about
-        var id: String { rawValue }
+        var id: Self { self }
 
         var title: String {
             switch self {
