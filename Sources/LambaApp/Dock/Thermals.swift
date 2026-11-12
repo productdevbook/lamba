@@ -48,6 +48,8 @@ final class Thermals: ObservableObject {
     /// 0...1 between each fan's minimum and maximum, for `.custom`.
     @Published var customLevel: Double = 0.5
     @Published private(set) var error: String?
+    /// macOS takes a few seconds to hand the fans over.
+    @Published private(set) var applying = false
 
     private let sensors = TemperatureSensors()
     private var applyWork: DispatchWorkItem?
@@ -88,21 +90,23 @@ final class Thermals: ObservableObject {
     /// Called on quit.
     func releaseFans() {
         guard mode != .auto else { return }
-        _ = try? HelperClient().send(.fans(level: nil))
+        _ = try? HelperClient().send(.fans(level: nil), timeout: 3)
     }
 
     private func apply() {
         let level: Double? = mode == .auto ? nil : mode == .max ? 1 : customLevel
+        applying = true
         DispatchQueue.global(qos: .userInitiated).async {
             let message: String?
             do {
-                let response = try HelperClient().send(.fans(level: level))
+                let response = try HelperClient().send(.fans(level: level), timeout: 12)
                 message = response.ok ? nil : response.error
             } catch {
-                message = L10n.sleepFailed
+                message = "\(error)"
             }
             DispatchQueue.main.async {
                 self.error = message
+                self.applying = false
                 if message != nil { self.mode = .auto }
             }
         }
@@ -211,6 +215,7 @@ struct ThermalsSection: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(L10n.thermalsFans).font(.system(size: 12, weight: .medium))
+                if thermals.applying { ProgressView().controlSize(.mini) }
                 Spacer()
                 Picker("", selection: Binding(get: { thermals.mode }, set: { thermals.setMode($0) })) {
                     Text(L10n.thermalsAuto).tag(Thermals.Mode.auto)

@@ -30,8 +30,9 @@ public struct HelperClient {
         self.socketPath = socketPath
     }
 
-    public func send(_ request: HelperRequest) throws -> HelperResponse {
-        let data = try UnixSocketClient.roundTrip(path: socketPath, request: Wire.encode(request), timeout: 1)
+    /// Fan changes can take a few seconds while macOS hands the fans over.
+    public func send(_ request: HelperRequest, timeout: TimeInterval = 1) throws -> HelperResponse {
+        let data = try UnixSocketClient.roundTrip(path: socketPath, request: Wire.encode(request), timeout: timeout)
         return try Wire.decode(HelperResponse.self, from: data)
     }
 }
