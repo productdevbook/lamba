@@ -4,7 +4,7 @@
 set -eu
 
 APP="$1"
-LABEL="app.lamba.helper"
+LABEL="dev.hamur.lamba.helper"
 RESOURCES="$APP/Contents/Resources"
 HELPER_DST="/Library/PrivilegedHelperTools/$LABEL"
 PLIST_DST="/Library/LaunchDaemons/$LABEL.plist"
@@ -22,6 +22,11 @@ install -d -m 755 /usr/local/bin
 # A symlink keeps the CLI in step with the app after every update.
 rm -f "$CLI_DST"
 ln -s "$RESOURCES/lamba" "$CLI_DST"
+
+# The helper's earlier id (before the app became dev.hamur.lamba).
+launchctl bootout system/app.lamba.helper 2>/dev/null || true
+rm -f /Library/LaunchDaemons/app.lamba.helper.plist /Library/PrivilegedHelperTools/app.lamba.helper \
+      /var/run/app.lamba.helper.sock /var/log/app.lamba.helper.log
 
 # Remove leftovers of pre-release builds (setuid prototype, and the product's earlier name "Glint").
 rm -f /usr/local/libexec/magsafeled

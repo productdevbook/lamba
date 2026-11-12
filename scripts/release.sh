@@ -74,7 +74,7 @@ swift test 2>&1 | tail -3
 echo "→ Building and signing"
 VERSION="$VERSION" BUILD="$BUILD" SIGN_IDENTITY="$SIGN_IDENTITY" ./scripts/build-app.sh
 
-for signed in "$APP" "$APP/Contents/Resources/app.lamba.helper" "$APP/Contents/Resources/lamba" "$APP/Contents/Frameworks/Sparkle.framework"; do
+for signed in "$APP" "$APP/Contents/Resources/dev.hamur.lamba.helper" "$APP/Contents/Resources/lamba" "$APP/Contents/Frameworks/Sparkle.framework"; do
   details=$(codesign -dvv "$signed" 2>&1)
   echo "$details" | grep -q "flags=.*runtime" || { echo "hardened runtime missing: $signed"; exit 1; }
   echo "$details" | grep -q "^Timestamp=" || { echo "secure timestamp missing: $signed"; exit 1; }

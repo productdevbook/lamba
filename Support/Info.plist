@@ -11,7 +11,7 @@
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
-	<string>app.lamba.Lamba</string>
+	<string>dev.hamur.lamba</string>
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>

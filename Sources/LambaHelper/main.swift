@@ -74,7 +74,7 @@ do {
     server = try UnixSocketServer(
         path: socketPath,
         permissions: 0o666, // reachable by everyone; access is decided per connection below
-        queue: DispatchQueue(label: "app.lamba.helper.ipc"),
+        queue: DispatchQueue(label: "dev.hamur.lamba.helper.ipc"),
         authorize: { uid in uid == 0 || uid == getuid() || uid == consoleUserID() },
         handler: handle
     )

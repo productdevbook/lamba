@@ -22,10 +22,10 @@ if [ -n "${BUILD:-}" ]; then
   /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD" "$APP/Contents/Info.plist"
 fi
 cp "$BIN/LambaApp" "$APP/Contents/MacOS/Lamba"
-cp "$BIN/LambaHelper" "$APP/Contents/Resources/app.lamba.helper"
+cp "$BIN/LambaHelper" "$APP/Contents/Resources/dev.hamur.lamba.helper"
 cp "$BIN/lamba" "$APP/Contents/Resources/lamba"
 cp Support/lamba-hook "$APP/Contents/Resources/lamba-hook"
-cp Support/app.lamba.helper.plist Support/install-helper.sh Support/uninstall.sh Support/AppIcon.icns "$APP/Contents/Resources/"
+cp Support/dev.hamur.lamba.helper.plist Support/install-helper.sh Support/uninstall.sh Support/AppIcon.icns "$APP/Contents/Resources/"
 # Sparkle (automatic updates); the app's rpath points at Contents/Frameworks.
 ditto "$BIN/Sparkle.framework" "$APP/Contents/Frameworks/Sparkle.framework"
 
@@ -51,7 +51,7 @@ for item in \
   fi
 done
 codesign "${SIGN_FLAGS[@]}" "$SPARKLE"
-codesign "${SIGN_FLAGS[@]}" "$APP/Contents/Resources/app.lamba.helper"
+codesign "${SIGN_FLAGS[@]}" "$APP/Contents/Resources/dev.hamur.lamba.helper"
 codesign "${SIGN_FLAGS[@]}" "$APP/Contents/Resources/lamba"
 APP_FLAGS=("${SIGN_FLAGS[@]}")
 [ "$IDENTITY" != "-" ] && APP_FLAGS+=(--entitlements Support/Lamba.entitlements)

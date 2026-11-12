@@ -21,11 +21,11 @@ scripts/         build-app.sh, release.sh (signed + notarized DMG, Sparkle feed)
 ```
 
 ```
-Claude / scripts ──► lamba (CLI, MCP) ──► Lamba.app ──► app.lamba.helper (root) ──► SMC
-                     ~/Library/Application Support/Lamba/lamba.sock   /var/run/app.lamba.helper.sock
+Claude / scripts ──► lamba (CLI, MCP) ──► Lamba.app ──► dev.hamur.lamba.helper (root) ──► SMC
+                     ~/Library/Application Support/Lamba/lamba.sock   /var/run/dev.hamur.lamba.helper.sock
 ```
 
-- **Helper** (`/Library/PrivilegedHelperTools/app.lamba.helper`) accepts only `set <whitelisted state>` and `get`, only from root or the console user. It is not setuid, and it cannot run commands.
+- **Helper** (`/Library/PrivilegedHelperTools/dev.hamur.lamba.helper`) accepts only `set <whitelisted state>` and `get`, only from root or the console user. It is not setuid, and it cannot run commands.
 - **App** owns all logic (patterns, flash overlays, Pomodoro) and serves a user-only socket (0600, peer UID checked).
 - **CLI** talks to the app. If the app is not running, `lamba set` falls back to the helper directly.
 
@@ -195,7 +195,7 @@ helper with one password prompt. The `lamba` command is a symlink into the app a
 
 ## Before selling
 
-- [ ] Final product name and bundle id (now `app.lamba.*`); do not use "MagSafe" in the name
+- [x] Bundle id `dev.hamur.lamba` (helper `dev.hamur.lamba.helper`); never use "MagSafe" in the name
 - [x] Developer ID signing, notarization and automatic updates (`scripts/release.sh`, Sparkle)
 - [ ] Move helper install to `SMAppService.daemon`
 - [ ] Verify the caller's code signature in the helper, not only its UID

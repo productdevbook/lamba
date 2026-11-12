@@ -121,7 +121,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             server = try UnixSocketServer(
                 path: LambaPaths.appSocket,
                 permissions: 0o600,
-                queue: DispatchQueue(label: "app.lamba.ipc"),
+                queue: DispatchQueue(label: "dev.hamur.lamba.ipc"),
                 authorize: { $0 == getuid() },
                 asyncHandler: { [router] data, peer, reply in
                     DispatchQueue.main.async { router.handle(data, peer: peer, reply: reply) }

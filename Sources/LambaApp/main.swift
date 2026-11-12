@@ -8,6 +8,9 @@ if let index = CommandLine.arguments.firstIndex(of: "--snapshot"), index + 1 < C
 }
 #endif
 
+// Settings saved under the app's earlier bundle id move over once.
+LegacyDefaults.migrate()
+
 let app = NSApplication.shared
 let delegate = AppDelegate()
 app.delegate = delegate

@@ -7,7 +7,7 @@ public enum LambaVersion {
 }
 
 public enum LambaPaths {
-    public static let helperLabel = "app.lamba.helper"
+    public static let helperLabel = "dev.hamur.lamba.helper"
 
     /// Socket of the root helper. `LAMBA_HELPER_SOCKET` overrides it for development only;
     /// the override grants nothing, since the helper itself decides who may talk to it.
