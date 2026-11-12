@@ -16,9 +16,9 @@
 # Sparkle: the feed is signed with the EdDSA key in the login keychain (account "lamba", created with
 # `generate_keys --account lamba`). On another machine set SPARKLE_KEY_FILE to the exported key.
 #
-# Publishing (optional):
-#   R2_BUCKET                upload the DMG, Lamba.dmg (latest) and appcast.xml to <bucket>/lamba/ with wrangler
-#   GH_RELEASE=1             also create a GitHub release with the DMG attached
+# Publishing: downloads and the update feed are GitHub releases of RELEASES_REPO
+# (default productdevbook/lamba).
+#   PUBLISH=1                create release v<version> with the DMG, Lamba.dmg and appcast.xml (uses `gh`)
 set -euo pipefail
 
 NOTARIZE=1
@@ -39,7 +39,8 @@ OUT="$ROOT/build/release-$VERSION"
 APP="$ROOT/build/Lamba.app"
 DMG="$OUT/Lamba-$VERSION.dmg"
 APPCAST_DIR="$OUT/appcast"
-CDN_PREFIX="https://cdn.productdevbook.com/lamba/"
+RELEASES_REPO="${RELEASES_REPO:-productdevbook/lamba}"
+RELEASES_URL="https://github.com/$RELEASES_REPO/releases"
 SPARKLE_BIN="$ROOT/.build/artifacts/sparkle/Sparkle/bin"
 SIGN_IDENTITY="${SIGN_IDENTITY:-Developer ID Application}"
 
@@ -123,41 +124,32 @@ mkdir -p "$APPCAST_DIR"
 cp "$DMG" "$APPCAST_DIR/"
 NOTES="$ROOT/release-notes/$VERSION.html"
 [ -f "$NOTES" ] && cp "$NOTES" "$APPCAST_DIR/Lamba-$VERSION.html"
-curl -fsSL "${CDN_PREFIX}appcast.xml" -o "$APPCAST_DIR/appcast.xml" \
+curl -fsSL "$RELEASES_URL/latest/download/appcast.xml" -o "$APPCAST_DIR/appcast.xml" \
   || echo "  (no published appcast yet, starting a new one)"
 KEY_ARGS=(--account lamba)
 [ -n "${SPARKLE_KEY_FILE:-}" ] && KEY_ARGS=(--ed-key-file "$SPARKLE_KEY_FILE")
 "$SPARKLE_BIN/generate_appcast" "${KEY_ARGS[@]}" \
-  --download-url-prefix "$CDN_PREFIX" \
+  --download-url-prefix "$RELEASES_URL/download/v$VERSION/" \
+  --embed-release-notes \
   --maximum-deltas 0 \
   "$APPCAST_DIR"
 
 # --- Publish -----------------------------------------------------------------------------------
-if [ -n "${R2_BUCKET:-}" ]; then
-  command -v wrangler >/dev/null 2>&1 || { echo "R2_BUCKET is set but wrangler is not installed (npm i -g wrangler)"; exit 1; }
-  echo "→ Uploading to R2 ($R2_BUCKET/lamba/)"
-  # The DMG first: installed copies offer the update as soon as the feed changes.
-  wrangler r2 object put "$R2_BUCKET/lamba/Lamba-$VERSION.dmg" --file "$DMG" --remote
-  wrangler r2 object put "$R2_BUCKET/lamba/Lamba.dmg" --file "$DMG" --remote
-  [ -f "$APPCAST_DIR/Lamba-$VERSION.html" ] && \
-    wrangler r2 object put "$R2_BUCKET/lamba/Lamba-$VERSION.html" --file "$APPCAST_DIR/Lamba-$VERSION.html" --remote
-  wrangler r2 object put "$R2_BUCKET/lamba/appcast.xml" --file "$APPCAST_DIR/appcast.xml" --remote \
-    --content-type application/xml
-fi
-
-if [ "${GH_RELEASE:-}" = 1 ]; then
-  echo "→ GitHub release v$VERSION"
-  NOTES_ARGS=(--generate-notes)
-  [ -f "$NOTES" ] && NOTES_ARGS=(--notes-file "$NOTES")
-  gh release create "v$VERSION" "$DMG" --title "Lamba $VERSION" "${NOTES_ARGS[@]}"
+if [ "${PUBLISH:-}" = 1 ]; then
+  echo "→ Publishing v$VERSION to $RELEASES_REPO"
+  # The feed points at the latest release, so the DMG and feed go up together in one release.
+  cp "$DMG" "$OUT/Lamba.dmg"
+  NOTES_ARGS=(--notes "Lamba $VERSION")
+  [ -f "$NOTES" ] && NOTES_ARGS=(--notes "$(sed -e 's/<[^>]*>//g' "$NOTES" | sed '/^[[:space:]]*$/d')")
+  gh release create "v$VERSION" --repo "$RELEASES_REPO" --title "Lamba $VERSION" "${NOTES_ARGS[@]}" \
+    "$DMG" "$OUT/Lamba.dmg" "$APPCAST_DIR/appcast.xml"
 fi
 
 echo
 echo "✓ $DMG"
 echo "✓ $APPCAST_DIR/appcast.xml"
-if [ -z "${R2_BUCKET:-}" ]; then
+if [ "${PUBLISH:-}" != 1 ]; then
   echo
-  echo "Next: upload to the lamba/ folder of the CDN bucket, the DMG first (also as Lamba.dmg),"
-  echo "then appcast.xml. Installed copies offer the update as soon as the feed changes."
+  echo "Not published. Run again with PUBLISH=1, or push a v$VERSION tag to let GitHub Actions do it."
 fi
 echo "Commit the version bump and tag it: git commit -am \"Release $VERSION\" && git tag v$VERSION"

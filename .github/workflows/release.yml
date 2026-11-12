@@ -1,7 +1,7 @@
 name: Release
 
 # Push a tag like `v1.0.0`, or run it from the Actions tab. Builds, signs, notarizes, updates the
-# Sparkle feed, uploads to R2 when configured and creates a GitHub release.
+# Sparkle feed and publishes the DMG and feed as a GitHub release of this repo.
 on:
   push:
     tags: ['v*']
@@ -34,9 +34,7 @@ jobs:
         run: sudo xcode-select -s /Applications/Xcode.app
 
       - name: Install tools
-        run: |
-          brew install create-dmg
-          npm install -g wrangler
+        run: brew install create-dmg
 
       - name: Import Developer ID certificate
         env:
@@ -61,11 +59,8 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
-          R2_BUCKET: ${{ secrets.R2_BUCKET }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           GH_TOKEN: ${{ github.token }}
-          GH_RELEASE: '1'
+          PUBLISH: '1'
         run: |
           set -euo pipefail
           swift package resolve

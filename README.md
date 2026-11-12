@@ -53,7 +53,7 @@ your Mac.
 
 ## Install
 
-**[Download Lamba](https://cdn.productdevbook.com/lamba/Lamba.dmg)**, open the DMG and drag Lamba to
+**[Download Lamba](https://github.com/productdevbook/lamba/releases/latest/download/Lamba.dmg)**, open the DMG and drag Lamba to
 Applications. On first launch it asks for your password once to install its small helper (the only
 part that talks to the LED) and the `lamba` command.
 

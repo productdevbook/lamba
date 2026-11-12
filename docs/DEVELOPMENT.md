@@ -155,8 +155,8 @@ sudo /path/to/Lamba.app/Contents/Resources/uninstall.sh && rm -rf /path/to/Lamba
 
 ## Releasing
 
-Updates use [Sparkle](https://sparkle-project.org). Installed copies read
-`https://cdn.productdevbook.com/lamba/appcast.xml` once a day; every update is verified with the
+Updates use [Sparkle](https://sparkle-project.org). Downloads and the feed are GitHub releases of
+this repo. Installed copies read `releases/latest/download/appcast.xml` once a day; every update is verified with the
 EdDSA public key in `Support/Info.plist` (`SUPublicEDKey`). The private key is in the maintainer's
 login keychain under the account `lamba`. Back it up, without it no update can ever be shipped:
 
@@ -168,15 +168,16 @@ login keychain under the account `lamba`. Back it up, without it no update can e
 
 ```sh
 xcrun notarytool store-credentials lamba     # once: saves the notary credentials as a profile
-APPLE_TEAM_ID=QPH96J479A NOTARY_PROFILE=lamba R2_BUCKET=<bucket> GH_RELEASE=1 ./scripts/release.sh 1.0.0
+APPLE_TEAM_ID=QPH96J479A NOTARY_PROFILE=lamba PUBLISH=1 ./scripts/release.sh 1.0.0
 git commit -am "Release 1.0.0" && git tag v1.0.0 && git push --follow-tags
 ```
 
 `release.sh` sets the version (Info.plist and `LambaVersion.current`), runs the tests, builds and
 signs everything inside out (Sparkle, helper, CLI, app) with the hardened runtime, notarizes and
 staples the app, builds a DMG (create-dmg when installed), notarizes it, adds it to the published
-appcast and signs the feed. With `R2_BUCKET` it uploads `Lamba-<version>.dmg`, `Lamba.dmg` (the
-download link) and `appcast.xml` with wrangler, DMG first. `--no-notarize` stops after a signed DMG.
+appcast and signs the feed. With `PUBLISH=1` it creates GitHub release `v<version>` with
+`Lamba-<version>.dmg`, `Lamba.dmg` (the download link always points at the latest one) and
+`appcast.xml`. `--no-notarize` stops after a signed DMG.
 Release notes in `release-notes/<version>.html` are shown in the update window.
 
 **From GitHub Actions:** push a `v*` tag (or run *Release* by hand). Repository secrets:
@@ -187,7 +188,6 @@ Release notes in `release-notes/<version>.html` are shown in the update window.
 | `KEYCHAIN_PASSWORD` | any string, for the temporary keychain |
 | `APPLE_ID`, `APPLE_APP_PASSWORD`, `APPLE_TEAM_ID` | notarization |
 | `SPARKLE_PRIVATE_KEY` | contents of the exported `lamba-sparkle.key` |
-| `R2_BUCKET`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | upload to the CDN (optional) |
 
 The helper lives outside the app (`/Library/PrivilegedHelperTools`), so an update that changes the
 app <-> helper protocol must bump `LambaVersion.helperProtocol`; the updated app then reinstalls the
