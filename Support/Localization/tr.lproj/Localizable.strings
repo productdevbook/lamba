@@ -187,6 +187,8 @@
 "islands.time" = "Saat ve Pomodoro";
 "islands.untitled" = "Başlıksız";
 "islands.windowsOf" = "%@ · %d pencere";
+"keyboard.nightDim" = "Gece en düşük parlaklıkta yanıp sönsün (22:00–07:00)";
+"keyboard.offAfter" = "Bildirimden sonra klavye ışığını söndür";
 "kpi.flashes" = "Bildirim";
 "kpi.focus" = "Odak süresi";
 "kpi.sessions" = "Oturum";

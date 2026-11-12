@@ -187,6 +187,8 @@
 "islands.time" = "Uhrzeit und Pomodoro";
 "islands.untitled" = "Ohne Titel";
 "islands.windowsOf" = "%@ · %d Fenster";
+"keyboard.nightDim" = "Nachts mit geringster Helligkeit blinken (22:00–07:00)";
+"keyboard.offAfter" = "Tastaturlicht nach einer Benachrichtigung ausschalten";
 "kpi.flashes" = "Benachrichtigungen";
 "kpi.focus" = "Fokuszeit";
 "kpi.sessions" = "Sitzungen";

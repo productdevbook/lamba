@@ -23,6 +23,8 @@ enum Preferences {
         static let keyboardFlash = "keyboardFlash"
         static let capsLockFlash = "capsLockFlash"
         static let keyboardMoods = "keyboardMoods"
+        static let keyboardOffAfter = "keyboardOffAfter"
+        static let keyboardNightDim = "keyboardNightDim"
     }
 
     private static var store: UserDefaults { .standard }
@@ -48,6 +50,8 @@ enum Preferences {
             Key.keyboardFlash: true,
             Key.capsLockFlash: true,
             Key.keyboardMoods: true,
+            Key.keyboardOffAfter: true,
+            Key.keyboardNightDim: true,
         ])
     }
 
@@ -57,6 +61,14 @@ enum Preferences {
     static var keyboardFlash: Bool { store.bool(forKey: Key.keyboardFlash) }
     static var capsLockFlash: Bool { store.bool(forKey: Key.capsLockFlash) }
     static var keyboardMoods: Bool { store.bool(forKey: Key.keyboardMoods) }
+    static var keyboardOffAfter: Bool { store.bool(forKey: Key.keyboardOffAfter) }
+    static var keyboardNightDim: Bool { store.bool(forKey: Key.keyboardNightDim) }
+
+    /// 22:00–07:00 local time.
+    static var isNight: Bool {
+        let hour = Calendar.current.component(.hour, from: Date())
+        return hour >= 22 || hour < 7
+    }
 
     static var hapticStyle: HapticStyle {
         HapticStyle(

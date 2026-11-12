@@ -106,6 +106,8 @@ private struct GeneralSettings: View {
     @AppStorage(Preferences.Key.keyboardFlash) private var keyboardFlash = true
     @AppStorage(Preferences.Key.capsLockFlash) private var capsLockFlash = true
     @AppStorage(Preferences.Key.keyboardMoods) private var keyboardMoods = true
+    @AppStorage(Preferences.Key.keyboardOffAfter) private var keyboardOffAfter = true
+    @AppStorage(Preferences.Key.keyboardNightDim) private var keyboardNightDim = true
     @AppStorage(Preferences.Key.hapticWaveform) private var waveform = HapticStyle.default.waveform
     @AppStorage(Preferences.Key.hapticIntensity) private var intensity = HapticStyle.default.intensity
     @AppStorage(Preferences.Key.hapticPulses) private var pulses = HapticStyle.default.pulses
@@ -156,6 +158,8 @@ private struct GeneralSettings: View {
             Section(L10n.lightsSection) {
                 Toggle(L10n.flashOnPhaseChange, isOn: $flash)
                 Toggle(L10n.keyboardFlash, isOn: $keyboardFlash)
+                Toggle(L10n.keyboardOffAfter, isOn: $keyboardOffAfter)
+                Toggle(L10n.keyboardNightDim, isOn: $keyboardNightDim)
                 Toggle(L10n.capsLockFlash, isOn: $capsLockFlash)
                 Toggle(L10n.keyboardMoods, isOn: $keyboardMoods)
             }

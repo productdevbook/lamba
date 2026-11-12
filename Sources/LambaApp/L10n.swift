@@ -150,6 +150,8 @@ enum L10n {
     static let keyboardFlash = tr("settings.keyboardFlash")
     static let capsLockFlash = tr("settings.capsLockFlash")
     static let keyboardMoods = tr("settings.keyboardMoods")
+    static let keyboardOffAfter = tr("keyboard.offAfter")
+    static let keyboardNightDim = tr("keyboard.nightDim")
     static let dockStyleStripFooter = tr("dock.style.stripFooter")
     static let dockMagnification = tr("dock.magnification")
     static let dockAppearance = tr("dock.appearance")

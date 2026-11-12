@@ -187,6 +187,8 @@
 "islands.time" = "Clock and Pomodoro";
 "islands.untitled" = "Untitled";
 "islands.windowsOf" = "%@ · %d windows";
+"keyboard.nightDim" = "Flash at the lowest brightness at night (22:00–07:00)";
+"keyboard.offAfter" = "Turn the keyboard light off after a notification";
 "kpi.flashes" = "Notifications";
 "kpi.focus" = "Focus time";
 "kpi.sessions" = "Sessions";

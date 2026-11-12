@@ -56,7 +56,7 @@ final class KeyboardLight {
     /// returns to the mood (or the user's brightness).
     func flash(times: Int) {
         guard takeOver() else { return }
-        flashSteps = Array(repeating: [Float(1), Float(0)], count: max(1, min(times, 20))).flatMap { $0 }
+        flashSteps = Array(repeating: [peak, Float(0)], count: max(1, min(times, 20))).flatMap { $0 }
         flashTimer?.invalidate()
         advanceFlash()
         flashTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in self?.advanceFlash() }
@@ -93,17 +93,23 @@ final class KeyboardLight {
         case .normal:
             return
         case .focus:
-            setBrightness(base.level * 0.35)
+            setBrightness(min(base.level * 0.35, peak))
         case .rest:
             // One slow breath every 5 s.
             let phase = (1 - cos(t * 2 * .pi / 5)) / 2
-            setBrightness(Float(0.04 + 0.5 * phase))
+            setBrightness(min(Float(0.04 + 0.5 * phase), peak))
         case .attention:
-            // A quick glow at the start of every 2 s, else the user's level dimmed.
+            // A quick glow at the start of every 2 s; between glows dark, or the user's level dimmed.
             let x = t.truncatingRemainder(dividingBy: 2)
             let glow = x < 0.6 ? sin(x / 0.6 * .pi) : 0
-            setBrightness(max(base.level * 0.35, Float(glow)))
+            let rest = Preferences.keyboardOffAfter ? 0 : min(base.level * 0.35, peak)
+            setBrightness(max(rest, Float(glow) * peak))
         }
+    }
+
+    /// Brightest level Lamba uses: full by day, barely visible at night.
+    private var peak: Float {
+        Preferences.keyboardNightDim && Preferences.isNight ? 0.06 : 1
     }
 
     /// Remembers the user's settings the first time Lamba changes the light.
@@ -117,7 +123,8 @@ final class KeyboardLight {
 
     private func release() {
         guard let base else { return }
-        setBrightness(base.level)
+        // Restoring the old level left the light on until the next keypress timeout.
+        setBrightness(Preferences.keyboardOffAfter ? 0 : base.level)
         if let auto = base.auto { setAutoBrightness(auto) }
         self.base = nil
     }
