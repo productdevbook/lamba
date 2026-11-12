@@ -312,6 +312,9 @@
 "unsupported.body" = "Işığı kontrol etmek için MagSafe 3 girişi olan bir Mac gerekir. Pomodoro ve istatistikler yine de çalışır.";
 "unsupported.short" = "MagSafe yok";
 "unsupported.title" = "MagSafe ışığı bulunamadı";
+"updates.automatic" = "Güncellemeleri otomatik denetle";
+"updates.check" = "Güncellemeleri denetle…";
+"updates.section" = "Güncellemeler";
 "usage.charger" = "Şarj";
 "usage.light" = "Işık";
 "version" = "Sürüm %@";

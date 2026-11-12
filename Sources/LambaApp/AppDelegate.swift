@@ -21,6 +21,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         signal(SIGPIPE, SIG_IGN)
         Preferences.registerDefaults()
+        _ = Updater.shared // starts Sparkle's scheduled checks (release builds only)
 
         if (try? AppClient().send(.status)) != nil {
             // Another Lamba instance already owns the socket.

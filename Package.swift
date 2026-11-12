@@ -9,6 +9,10 @@ let package = Package(
         .executable(name: "LambaHelper", targets: ["LambaHelper"]),
         .executable(name: "lamba", targets: ["LambaCLI"]),
     ],
+    dependencies: [
+        // Sparkle: signed automatic updates (feed on the CDN, see scripts/release.sh).
+        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.0"),
+    ],
     targets: [
         // Thin C wrapper around the AppleSMC user client (only the LED key).
         .target(
@@ -20,7 +24,8 @@ let package = Package(
         // Menu bar app.
         .executableTarget(
             name: "LambaApp",
-            dependencies: ["LambaCore", "CSMC"] // CSMC: read-only LED probe, no root needed
+            dependencies: ["LambaCore", "CSMC", .product(name: "Sparkle", package: "Sparkle")], // CSMC: read-only LED probe
+            linkerSettings: [.unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"])]
         ),
         // Root launchd daemon; the only component that touches the SMC.
         .executableTarget(

@@ -92,6 +92,9 @@ final class StatusItemController: NSObject {
         menu.addItem(.separator())
         menu.addItem(MenuAction(L10n.statistics + "…") { [model] in model.openStatistics() })
         menu.addItem(MenuAction(L10n.settings + "…", key: ",") { [model] in model.openSettings() })
+        if Updater.isConfigured {
+            menu.addItem(MenuAction(L10n.checkForUpdates) { Updater.shared.checkForUpdates() })
+        }
         menu.addItem(.separator())
         menu.addItem(MenuAction(L10n.quit, key: "q") { [model] in model.quit() })
 

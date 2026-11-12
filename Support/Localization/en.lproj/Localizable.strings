@@ -312,6 +312,9 @@
 "unsupported.body" = "Lamba needs a Mac with a MagSafe 3 port to control the light. Pomodoro and statistics still work.";
 "unsupported.short" = "No MagSafe";
 "unsupported.title" = "No MagSafe light found";
+"updates.automatic" = "Check for updates automatically";
+"updates.check" = "Check for Updates…";
+"updates.section" = "Updates";
 "usage.charger" = "Charger";
 "usage.light" = "Light";
 "version" = "Version %@";

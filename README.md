@@ -53,18 +53,17 @@ your Mac.
 
 ## Install
 
+**[Download Lamba](https://cdn.productdevbook.com/lamba/Lamba.dmg)**, open the DMG and drag Lamba to
+Applications. On first launch it asks for your password once to install its small helper (the only
+part that talks to the LED) and the `lamba` command.
+
+Lamba updates itself: it checks once a day and installs new versions after asking. You can also use
+**Check for Updates…** in the menu bar menu or Settings › About.
+
 Requirements: macOS 13 or later. The status light needs an Apple silicon Mac with a MagSafe 3 port;
 everything else works on any Mac.
 
-```sh
-git clone git@github.com:productdevbook/lamba.git
-cd lamba
-./scripts/build-app.sh
-open build/Lamba.app
-```
-
-On first launch Lamba asks for your password once to install its small helper (the only part that
-talks to the LED) and the `lamba` command.
+To uninstall, choose **Uninstall** in Settings › About, then move Lamba to the Trash.
 
 &nbsp;
 
@@ -111,7 +110,8 @@ Architecture, build and release notes are in [docs/DEVELOPMENT.md](docs/DEVELOPM
 
 ```sh
 swift test
-./scripts/build-app.sh
+./scripts/build-app.sh && open build/Lamba.app    # local, ad-hoc signed build
+./scripts/release.sh 1.0.0                         # signed, notarized DMG + update feed
 ```
 
 &nbsp;

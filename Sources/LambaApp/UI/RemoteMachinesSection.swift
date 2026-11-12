@@ -111,3 +111,9 @@ extension L10n {
     static var sleepFooter: String { tr("sleep.footer") }
     static var sleepFailed: String { tr("sleep.failed") }
 }
+
+extension L10n {
+    static var checkForUpdates: String { tr("updates.check") }
+    static var updatesSection: String { tr("updates.section") }
+    static var updatesAutomatic: String { tr("updates.automatic") }
+}

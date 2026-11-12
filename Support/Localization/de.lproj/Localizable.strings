@@ -312,6 +312,9 @@
 "unsupported.body" = "Zum Steuern des Lichts braucht Lamba einen Mac mit MagSafe 3-Anschluss. Pomodoro und Statistik funktionieren trotzdem.";
 "unsupported.short" = "Kein MagSafe";
 "unsupported.title" = "Keine MagSafe-Leuchte gefunden";
+"updates.automatic" = "Automatisch nach Updates suchen";
+"updates.check" = "Nach Updates suchen …";
+"updates.section" = "Updates";
 "usage.charger" = "Ladegerät";
 "usage.light" = "Licht";
 "version" = "Version %@";

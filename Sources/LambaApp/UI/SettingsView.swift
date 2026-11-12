@@ -439,6 +439,9 @@ private struct AboutSettings: View {
                     }
                 }
             }
+            if Updater.isConfigured {
+                UpdatesSection()
+            }
             Section(L10n.helperSection) {
                 LabeledContent(L10n.helperStatus) {
                     HStack(spacing: 5) {
@@ -455,5 +458,20 @@ private struct AboutSettings: View {
             }
         }
         .formStyle(.grouped)
+    }
+}
+
+/// Settings › About: automatic update checks and "Check for Updates…".
+private struct UpdatesSection: View {
+    @ObservedObject private var updater = Updater.shared
+
+    var body: some View {
+        Section(L10n.updatesSection) {
+            Toggle(L10n.updatesAutomatic, isOn: Binding(get: { updater.automaticallyChecks }, set: { updater.automaticallyChecks = $0 }))
+            HStack {
+                Spacer()
+                Button(L10n.checkForUpdates, action: updater.checkForUpdates).disabled(!updater.canCheck)
+            }
+        }
     }
 }
