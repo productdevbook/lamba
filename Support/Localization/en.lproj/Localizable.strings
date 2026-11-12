@@ -31,6 +31,13 @@
 "cli.caption" = "Use from scripts and builds.";
 "cli.location" = "Command line tool";
 "cli.title" = "Command line";
+"clipboard.clear" = "Clear";
+"clipboard.copied" = "Copied";
+"clipboard.empty" = "Copy something and it shows up here";
+"clipboard.footer" = "Kept in memory only, never saved. Passwords are skipped.";
+"clipboard.remove" = "Remove";
+"clipboard.show" = "Show clipboard history";
+"clipboard.title" = "Clipboard History";
 "conn.advanced" = "Manual setup and command line";
 "conn.connect" = "Connect";
 "conn.connected" = "Connected";
@@ -305,6 +312,13 @@
 "stats.empty" = "No focus time yet. Start a Pomodoro and it shows up here.";
 "stats.privacy" = "Statistics are stored only on this Mac.";
 "streak.days" = "%d days";
+"system.cpu" = "CPU";
+"system.memory" = "Memory";
+"system.memoryDetail" = "%@ of %@";
+"system.network" = "Network";
+"system.openMonitor" = "Open Activity Monitor";
+"system.show" = "Show system status (CPU, memory, network)";
+"system.title" = "System";
 "toggles.button" = "Quick toggles";
 "toggles.darkMode" = "Dark mode";
 "toggles.dnd" = "Do Not Disturb";

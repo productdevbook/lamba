@@ -1,0 +1,20 @@
+STRINGS = {
+    "clipboard.title": ("Clipboard History", "Pano Geçmişi", "Zwischenablage-Verlauf"),
+    "clipboard.empty": ("Copy something and it shows up here", "Bir şey kopyala, burada görünsün", "Kopieren Sie etwas, dann erscheint es hier"),
+    "clipboard.clear": ("Clear", "Temizle", "Leeren"),
+    "clipboard.copied": ("Copied", "Kopyalandı", "Kopiert"),
+    "clipboard.remove": ("Remove", "Kaldır", "Entfernen"),
+    "clipboard.show": ("Show clipboard history", "Pano geçmişini göster", "Zwischenablage-Verlauf zeigen"),
+    "clipboard.footer": (
+        "Kept in memory only, never saved. Passwords are skipped.",
+        "Yalnızca bellekte tutulur, kaydedilmez. Parolalar alınmaz.",
+        "Nur im Speicher, nie gesichert. Passwörter werden übersprungen.",
+    ),
+    "system.title": ("System", "Sistem", "System"),
+    "system.cpu": ("CPU", "İşlemci", "CPU"),
+    "system.memory": ("Memory", "Bellek", "Speicher"),
+    "system.memoryDetail": ("%@ of %@", "%@ / %@", "%@ von %@"),
+    "system.network": ("Network", "Ağ", "Netzwerk"),
+    "system.openMonitor": ("Open Activity Monitor", "Etkinlik Monitörü'nü aç", "Aktivitätsanzeige öffnen"),
+    "system.show": ("Show system status (CPU, memory, network)", "Sistem durumunu göster (işlemci, bellek, ağ)", "Systemstatus zeigen (CPU, Speicher, Netzwerk)"),
+}

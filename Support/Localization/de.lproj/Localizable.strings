@@ -31,6 +31,13 @@
 "cli.caption" = "Aus Skripten und Builds verwenden.";
 "cli.location" = "Befehlszeilen-Tool";
 "cli.title" = "Befehlszeile";
+"clipboard.clear" = "Leeren";
+"clipboard.copied" = "Kopiert";
+"clipboard.empty" = "Kopieren Sie etwas, dann erscheint es hier";
+"clipboard.footer" = "Nur im Speicher, nie gesichert. Passwörter werden übersprungen.";
+"clipboard.remove" = "Entfernen";
+"clipboard.show" = "Zwischenablage-Verlauf zeigen";
+"clipboard.title" = "Zwischenablage-Verlauf";
 "conn.advanced" = "Manuelle Einrichtung und Befehlszeile";
 "conn.connect" = "Verbinden";
 "conn.connected" = "Verbunden";
@@ -305,6 +312,13 @@
 "stats.empty" = "Noch keine Fokuszeit. Starte einen Pomodoro, dann erscheint sie hier.";
 "stats.privacy" = "Statistiken werden nur auf diesem Mac gespeichert.";
 "streak.days" = "%d Tage";
+"system.cpu" = "CPU";
+"system.memory" = "Speicher";
+"system.memoryDetail" = "%@ von %@";
+"system.network" = "Netzwerk";
+"system.openMonitor" = "Aktivitätsanzeige öffnen";
+"system.show" = "Systemstatus zeigen (CPU, Speicher, Netzwerk)";
+"system.title" = "System";
 "toggles.button" = "Schnellschalter";
 "toggles.darkMode" = "Dunkelmodus";
 "toggles.dnd" = "Nicht stören";

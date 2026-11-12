@@ -16,7 +16,13 @@ enum PanelSnapshots {
         RecentDownloads.shared.start()
         RunLoop.main.run(until: Date().addingTimeInterval(1))
         save(DownloadsPopover(downloads: .shared).environment(\.colorScheme, .dark), dark: true, to: "\(directory)/downloads-popover.png")
+        ClipboardHistory.shared.start()
+        SystemStatus.shared.start()
+        RunLoop.main.run(until: Date().addingTimeInterval(2.2))
+        save(SystemStatusPopover(status: .shared).environment(\.colorScheme, .dark), dark: true, to: "\(directory)/system-popover.png")
+        save(ClipboardPopover(history: .shared).environment(\.colorScheme, .dark), dark: true, to: "\(directory)/clipboard-popover.png")
         for dark in [false, true] {
+            save(HStack(spacing: 4) { SystemStatusTile(); ClipboardTile() }.padding(8), dark: dark, to: "\(directory)/tools-tile-\(dark ? "dark" : "light").png")
             save(HStack(spacing: 4) { DownloadsTile(); TrashChip() }.padding(8), dark: dark, to: "\(directory)/downloads-tile-\(dark ? "dark" : "light").png")
             let suffix = dark ? "dark" : "light"
             let idle = makeModel { light, _ in light.set(.solid(.green)) }

@@ -268,6 +268,8 @@ private struct DockSettings: View {
     @AppStorage(Preferences.Key.dockIconSize) private var iconSize = 48.0
     @AppStorage(Preferences.Key.dockMagnification) private var magnification = 1.6
     @AppStorage(Preferences.Key.dockDownloads) private var showDownloads = true
+    @AppStorage(Preferences.Key.dockClipboard) private var showClipboard = true
+    @AppStorage(Preferences.Key.dockSystemStatus) private var showSystem = true
 
     var body: some View {
         Form {
@@ -293,6 +295,8 @@ private struct DockSettings: View {
                     }
                 } else {
                     Toggle(L10n.dockShowDownloads, isOn: $showDownloads)
+                    Toggle(L10n.clipboardShow, isOn: $showClipboard)
+                    Toggle(L10n.systemShow, isOn: $showSystem)
                     Text(L10n.dockStyleStripFooter).font(.system(size: 11)).foregroundStyle(.secondary)
                 }
             } header: {

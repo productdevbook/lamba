@@ -31,6 +31,13 @@
 "cli.caption" = "Betiklerden ve derlemelerden kullanın.";
 "cli.location" = "Komut satırı aracı";
 "cli.title" = "Komut satırı";
+"clipboard.clear" = "Temizle";
+"clipboard.copied" = "Kopyalandı";
+"clipboard.empty" = "Bir şey kopyala, burada görünsün";
+"clipboard.footer" = "Yalnızca bellekte tutulur, kaydedilmez. Parolalar alınmaz.";
+"clipboard.remove" = "Kaldır";
+"clipboard.show" = "Pano geçmişini göster";
+"clipboard.title" = "Pano Geçmişi";
 "conn.advanced" = "Elle kurulum ve komut satırı";
 "conn.connect" = "Bağla";
 "conn.connected" = "Bağlı";
@@ -305,6 +312,13 @@
 "stats.empty" = "Henüz odak süresi yok. Bir Pomodoro başlatınca burada görünecek.";
 "stats.privacy" = "İstatistikler yalnızca bu Mac'te saklanır.";
 "streak.days" = "%d gün";
+"system.cpu" = "İşlemci";
+"system.memory" = "Bellek";
+"system.memoryDetail" = "%@ / %@";
+"system.network" = "Ağ";
+"system.openMonitor" = "Etkinlik Monitörü'nü aç";
+"system.show" = "Sistem durumunu göster (işlemci, bellek, ağ)";
+"system.title" = "Sistem";
 "toggles.button" = "Hızlı anahtarlar";
 "toggles.darkMode" = "Koyu mod";
 "toggles.dnd" = "Rahatsız Etme";

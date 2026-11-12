@@ -21,6 +21,8 @@ struct StripDockView: View {
 
     @State private var launching: Set<String> = []
     @AppStorage(Preferences.Key.dockDownloads) private var showDownloads = true
+    @AppStorage(Preferences.Key.dockClipboard) private var showClipboard = true
+    @AppStorage(Preferences.Key.dockSystemStatus) private var showSystem = true
     /// Chip frames in window coordinates, to find the chip under the pointer. The Dock's own
     /// pointer tracking is used because SwiftUI hover doesn't fire while Lamba isn't active.
     @State private var chipFrames: [String: CGRect] = [:]
@@ -37,7 +39,9 @@ struct StripDockView: View {
             ModuleDivider()
             apps
             ModuleDivider()
+            if showSystem { SystemStatusTile(onDark: true) }
             StatusModule(chargeState: model.chargeState)
+            if showClipboard { ClipboardTile(onDark: true) }
             if showDownloads { DownloadsTile(onDark: true) }
             TrashChip()
         }
