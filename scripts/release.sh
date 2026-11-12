@@ -141,8 +141,13 @@ if [ "${PUBLISH:-}" = 1 ]; then
   echo "→ Publishing v$VERSION to $RELEASES_REPO"
   # The feed points at the latest release, so the DMG and feed go up together in one release.
   cp "$DMG" "$OUT/Lamba.dmg"
+  # GitHub shows release-notes/<version>.md (Markdown); Sparkle's update window uses the .html.
   NOTES_ARGS=(--notes "Lamba $VERSION")
-  [ -f "$NOTES" ] && NOTES_ARGS=(--notes "$(sed -e 's/<[^>]*>//g' "$NOTES" | sed '/^[[:space:]]*$/d')")
+  if [ -f "$ROOT/release-notes/$VERSION.md" ]; then
+    NOTES_ARGS=(--notes-file "$ROOT/release-notes/$VERSION.md")
+  elif [ -f "$NOTES" ]; then
+    NOTES_ARGS=(--notes "$(sed -e 's/<[^>]*>//g' "$NOTES" | sed '/^[[:space:]]*$/d')")
+  fi
   gh release create "v$VERSION" --repo "$RELEASES_REPO" --title "Lamba $VERSION" "${NOTES_ARGS[@]}" \
     "$DMG" "$OUT/Lamba.dmg" "$APPCAST_DIR/appcast.xml"
 fi
