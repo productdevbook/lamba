@@ -4,8 +4,17 @@ import LambaCore
 /// System sleep on/off (`pmset disablesleep`). Reading needs no rights; changing goes through the
 /// root helper so there is no password prompt each time.
 enum SystemSleep {
-    /// `SleepDisabled 1` in `pmset -g`: the Mac never sleeps, even with the lid closed.
-    static var isDisabled: Bool {
+    /// Reads the state off the main thread. Never call `pmset` while SwiftUI renders: waiting for
+    /// a process spins the run loop, and doing that inside a view update stops later updates.
+    static func read(_ completion: @escaping (Bool) -> Void) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            let disabled = isDisabled
+            DispatchQueue.main.async { completion(disabled) }
+        }
+    }
+
+    /// `SleepDisabled 1` in `pmset -g`: the Mac never sleeps, even with the lid closed. Blocking.
+    private static var isDisabled: Bool {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/pmset")
         process.arguments = ["-g"]

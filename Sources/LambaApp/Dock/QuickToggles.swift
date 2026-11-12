@@ -30,14 +30,15 @@ final class QuickToggles: ObservableObject {
         darkMode = SystemAppearance.isDark
         micMuted = Microphone.isMuted
         keepAwake = KeepAwake.isOn
-        sleepDisabled = SystemSleep.isDisabled
         objectWillChange.send()
+        SystemSleep.read { [weak self] in self?.sleepDisabled = $0 }
     }
 
     /// `pmset disablesleep` through the root helper; the real state is read back afterwards.
     func toggleSleepDisabled() {
-        try? SystemSleep.set(disabled: !sleepDisabled)
-        sleepDisabled = SystemSleep.isDisabled
+        sleepDisabled.toggle()
+        try? SystemSleep.set(disabled: sleepDisabled)
+        SystemSleep.read { [weak self] in self?.sleepDisabled = $0 }
     }
 
 

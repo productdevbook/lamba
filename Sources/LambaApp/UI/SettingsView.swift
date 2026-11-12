@@ -57,23 +57,29 @@ struct SettingsView: View {
     var body: some View {
         NavigationSplitView {
             List(Tab.allCases, selection: Binding(get: { router.tab }, set: { if let tab = $0 { router.tab = tab } })) { tab in
-                Label {
-                    Text(tab.title)
-                } icon: {
-                    Image(systemName: tab.symbol)
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(width: 22, height: 22)
-                        .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(tab.color.gradient))
-                }
-                .tag(tab)
+                SidebarRow(tab: tab)
             }
             .navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 240)
         } detail: {
-            page
-                .navigationTitle(router.tab.title)
+            page.navigationTitle(router.tab.title)
         }
         .frame(minWidth: 780, minHeight: 520)
+    }
+
+    private struct SidebarRow: View {
+        let tab: Tab
+
+        var body: some View {
+            Label {
+                Text(tab.title)
+            } icon: {
+                Image(systemName: tab.symbol)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 22, height: 22)
+                    .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(tab.color.gradient))
+            }
+        }
     }
 
     @ViewBuilder
@@ -107,7 +113,7 @@ private struct GeneralSettings: View {
     private var hapticStyle: HapticStyle { HapticStyle(waveform: waveform, intensity: intensity, pulses: pulses) }
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var language = AppLanguage.current
-    @State private var sleepDisabled = SystemSleep.isDisabled
+    @State private var sleepDisabled = false
     @State private var sleepError: String?
     private let launchLanguage = AppLanguage.current
 
@@ -196,6 +202,7 @@ private struct GeneralSettings: View {
             }
         }
         .formStyle(.grouped)
+        .onAppear { SystemSleep.read { sleepDisabled = $0 } }
         .onChange(of: waveform) { _ in preview() }
         .onChange(of: pulses) { _ in preview() }
     }
@@ -212,7 +219,7 @@ private struct GeneralSettings: View {
         } catch {
             sleepError = L10n.sleepFailed
         }
-        sleepDisabled = SystemSleep.isDisabled
+        SystemSleep.read { sleepDisabled = $0 }
     }
 
     private func setLaunchAtLogin(_ enabled: Bool) {

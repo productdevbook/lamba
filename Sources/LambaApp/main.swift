@@ -1,6 +1,12 @@
 import AppKit
 
 #if DEBUG
+if let index = CommandLine.arguments.firstIndex(of: "--settings-click-test"), index + 1 < CommandLine.arguments.count {
+    _ = NSApplication.shared
+    NSApp.setActivationPolicy(.accessory); NSApp.finishLaunching()
+    MainActor.assumeIsolated { PanelSnapshots.clickSidebar(to: CommandLine.arguments[index + 1]) }
+    exit(0)
+}
 if let index = CommandLine.arguments.firstIndex(of: "--snapshot"), index + 1 < CommandLine.arguments.count {
     _ = NSApplication.shared
     MainActor.assumeIsolated { PanelSnapshots.render(to: CommandLine.arguments[index + 1]) }

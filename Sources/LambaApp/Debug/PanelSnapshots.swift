@@ -64,6 +64,57 @@ enum PanelSnapshots {
         return url
     }
 
+    /// Opens Settings in an off-screen window, clicks each sidebar row with synthetic events sent
+    /// to that window only, and prints which page the router ends up on.
+    static func clickSidebar(to directory: String) {
+        // Sanity check: does a synthetic click reach a plain SwiftUI button in such a window?
+        final class Flag { var hit = false }
+        let flag = Flag()
+        let probe = NSWindow(contentRect: NSRect(x: -4000, y: 200, width: 200, height: 100), styleMask: [.titled], backing: .buffered, defer: false)
+        probe.contentView = NSHostingView(rootView: Button("Probe") { flag.hit = true }.buttonStyle(.plain).frame(width: 200, height: 100))
+        probe.orderFrontRegardless()
+        RunLoop.main.run(until: Date().addingTimeInterval(0.5))
+        for type in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
+            probe.sendEvent(NSEvent.mouseEvent(with: type, location: NSPoint(x: 100, y: 50), modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
+                                               windowNumber: probe.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1)!)
+        }
+        RunLoop.main.run(until: Date().addingTimeInterval(0.3))
+        print("probe button hit: \(flag.hit)")
+        probe.close()
+
+        let model = makeModel { _, _ in }
+        let router = SettingsRouter()
+        let window = NSWindow(contentRect: NSRect(x: -4000, y: 200, width: 900, height: 640),
+                              styleMask: [.titled, .closable, .resizable, .fullSizeContentView], backing: .buffered, defer: false)
+        window.titlebarAppearsTransparent = true
+        window.toolbarStyle = .unified
+        window.contentView = NSHostingView(rootView: SettingsView(model: model, router: router))
+        window.orderFrontRegardless()
+        window.makeKey()
+        RunLoop.main.run(until: Date().addingTimeInterval(0.8))
+        let height = window.contentView!.bounds.height
+        for (index, y) in stride(from: 52.0, through: 52 + 4 * 30, by: 30).enumerated() {
+            let point = NSPoint(x: 90, y: height - y)
+            func event(_ type: NSEvent.EventType) -> NSEvent {
+                NSEvent.mouseEvent(with: type, location: point, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
+                                   windowNumber: window.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1)!
+            }
+            window.sendEvent(event(.leftMouseDown))
+            window.sendEvent(event(.leftMouseUp))
+            RunLoop.main.run(until: Date().addingTimeInterval(0.4))
+            print("row \(index) at y=\(y): router.tab = \(router.tab)")
+        }
+        router.tab = .dock
+        RunLoop.main.run(until: Date().addingTimeInterval(0.6))
+        window.contentView!.needsDisplay = true
+        window.displayIfNeeded()
+        let hosting = window.contentView!
+        if let rep = hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds) {
+            hosting.cacheDisplay(in: hosting.bounds, to: rep)
+            try? rep.representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: directory + "/settings-click.png"))
+        }
+    }
+
     /// Draws through AppKit (not ImageRenderer) so native controls render too.
     private static func save<V: View>(_ view: V, dark: Bool, to path: String) {
         let hosting = NSHostingView(rootView: view.background(Color(nsColor: .windowBackgroundColor)))
