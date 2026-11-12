@@ -41,3 +41,7 @@ osascript -e 'quit app "Lamba"'; sleep 3; open build/Lamba.app
 Push a `v1.2.3` tag. The Release workflow signs, notarizes, publishes the DMG and Sparkle feed as a
 GitHub release and updates `Casks/lamba.rb` in `productdevbook/homebrew-tap`. Locally:
 `./scripts/release.sh 1.2.3` (see the script header for the environment variables).
+
+GitHub release notes come from the commits (`scripts/release-notes.sh`, changelogithub), so commit
+subjects are what users read: write them for users. Every release ends with a short note about
+hamur and nothing else. `release-notes/<version>.html` is the text of Sparkle's update window.
