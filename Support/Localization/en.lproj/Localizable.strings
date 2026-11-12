@@ -314,6 +314,10 @@
 "streak.days" = "%d days";
 "system.cpu" = "CPU";
 "system.lastHour" = "Last hour";
+"system.mem.app" = "App memory";
+"system.mem.cache" = "Cached files (not counted)";
+"system.mem.compressed" = "Compressed";
+"system.mem.wired" = "Wired (system)";
 "system.memory" = "Memory";
 "system.memoryDetail" = "%@ of %@";
 "system.network" = "Network";

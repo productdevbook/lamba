@@ -11,6 +11,10 @@ extension L10n {
     static let systemShow = tr("system.show")
     static let systemLastHour = tr("system.lastHour")
     static let systemTotal = tr("system.total")
+    static let systemMemApp = tr("system.mem.app")
+    static let systemMemWired = tr("system.mem.wired")
+    static let systemMemCompressed = tr("system.mem.compressed")
+    static let systemMemCache = tr("system.mem.cache")
     static func systemMemoryDetail(_ used: String, _ total: String) -> String { format("system.memoryDetail", used, total) }
 }
 
@@ -20,6 +24,9 @@ final class SystemStatus: ObservableObject {
 
     @Published private(set) var cpu: Double = 0
     @Published private(set) var memoryUsed: UInt64 = 0
+    struct MemoryParts: Equatable { var app: UInt64 = 0, wired: UInt64 = 0, compressed: UInt64 = 0, cache: UInt64 = 0 }
+    /// What "used" is made of, plus the file cache (not counted as used).
+    @Published private(set) var memoryParts = MemoryParts()
     let memoryTotal = ProcessInfo.processInfo.physicalMemory
     @Published private(set) var downPerSecond: Double = 0
     @Published private(set) var upPerSecond: Double = 0
@@ -56,7 +63,10 @@ final class SystemStatus: ObservableObject {
             }
             lastTicks = ticks
         }
-        if let used = Self.memoryInUse() { memoryUsed = used }
+        if let parts = Self.memoryParts() {
+            memoryParts = parts
+            memoryUsed = parts.app + parts.wired + parts.compressed
+        }
         let bytes = Self.networkBytes(), now = Date()
         if let last = lastBytes {
             let seconds = max(now.timeIntervalSince(last.at), 0.1)
@@ -99,8 +109,9 @@ final class SystemStatus: ObservableObject {
         return (user + system + nice, user + system + idle + nice)
     }
 
-    /// Like Activity Monitor's "Memory Used": app memory, wired and compressed.
-    private static func memoryInUse() -> UInt64? {
+    /// Activity Monitor's breakdown: "Memory Used" is app memory, wired and compressed;
+    /// cached files can be dropped at any time and aren't counted.
+    private static func memoryParts() -> MemoryParts? {
         var stats = vm_statistics64()
         var count = mach_msg_type_number_t(MemoryLayout<vm_statistics64>.size / MemoryLayout<integer_t>.size)
         let result = withUnsafeMutablePointer(to: &stats) {
@@ -111,7 +122,12 @@ final class SystemStatus: ObservableObject {
         guard result == KERN_SUCCESS else { return nil }
         let page = UInt64(vm_kernel_page_size)
         let app = UInt64(stats.internal_page_count) - UInt64(stats.purgeable_count)
-        return (app + UInt64(stats.wire_count) + UInt64(stats.compressor_page_count)) * page
+        return MemoryParts(
+            app: app * page,
+            wired: UInt64(stats.wire_count) * page,
+            compressed: UInt64(stats.compressor_page_count) * page,
+            cache: (UInt64(stats.external_page_count) + UInt64(stats.purgeable_count)) * page
+        )
     }
 
     /// Bytes through physical interfaces (en*), since boot.
@@ -220,6 +236,10 @@ struct SystemStatusPopover: View {
             VStack(alignment: .leading, spacing: 6) {
                 row(L10n.systemMemory, L10n.systemMemoryDetail(bytes(status.memoryUsed), bytes(status.memoryTotal)))
                 Bar(value: status.memory, track: Color.white.opacity(0.12)).frame(height: 6)
+                memoryPart(L10n.systemMemApp, status.memoryParts.app)
+                memoryPart(L10n.systemMemWired, status.memoryParts.wired)
+                memoryPart(L10n.systemMemCompressed, status.memoryParts.compressed)
+                memoryPart(L10n.systemMemCache, status.memoryParts.cache)
             }
             HStack {
                 Text(L10n.systemNetwork).font(.system(size: 12, weight: .medium))
@@ -248,6 +268,16 @@ struct SystemStatusPopover: View {
         .padding(14)
         .frame(width: 280)
         .animation(.easeOut(duration: 0.4), value: status.cpu)
+    }
+
+    private func memoryPart(_ title: String, _ value: UInt64) -> some View {
+        HStack {
+            Text(title)
+            Spacer()
+            Text(bytes(value)).monospacedDigit()
+        }
+        .font(.system(size: 10.5))
+        .foregroundStyle(.secondary)
     }
 
     private func row(_ title: String, _ value: String) -> some View {

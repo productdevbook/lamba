@@ -314,6 +314,10 @@
 "streak.days" = "%d gün";
 "system.cpu" = "İşlemci";
 "system.lastHour" = "Son 1 saat";
+"system.mem.app" = "Uygulamalar";
+"system.mem.cache" = "Önbellek (sayılmaz)";
+"system.mem.compressed" = "Sıkıştırılmış";
+"system.mem.wired" = "Sistem (wired)";
 "system.memory" = "Bellek";
 "system.memoryDetail" = "%@ / %@";
 "system.network" = "Ağ";
