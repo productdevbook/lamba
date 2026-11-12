@@ -77,7 +77,7 @@ private enum Thumbnails {
     }
 }
 
-private struct Thumbnail: View {
+struct Thumbnail: View {
     let url: URL
     let size: CGFloat
     @State private var image: NSImage?

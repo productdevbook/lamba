@@ -20,6 +20,7 @@ struct StripDockView: View {
     let nowPlaying: NowPlayingMonitor
 
     @State private var launching: Set<String> = []
+    @AppStorage(Preferences.Key.dockDownloads) private var showDownloads = true
     /// Chip frames in window coordinates, to find the chip under the pointer. The Dock's own
     /// pointer tracking is used because SwiftUI hover doesn't fire while Lamba isn't active.
     @State private var chipFrames: [String: CGRect] = [:]
@@ -37,6 +38,7 @@ struct StripDockView: View {
             apps
             ModuleDivider()
             StatusModule(chargeState: model.chargeState)
+            if showDownloads { DownloadsTile(onDark: true) }
             TrashChip()
         }
         .padding(StripMetrics.inset)

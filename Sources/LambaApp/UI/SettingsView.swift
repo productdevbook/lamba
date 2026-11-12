@@ -267,6 +267,7 @@ private struct DockSettings: View {
     @AppStorage(Preferences.Key.hideAppleDock) private var hideAppleDock = true
     @AppStorage(Preferences.Key.dockIconSize) private var iconSize = 48.0
     @AppStorage(Preferences.Key.dockMagnification) private var magnification = 1.6
+    @AppStorage(Preferences.Key.dockDownloads) private var showDownloads = true
 
     var body: some View {
         Form {
@@ -291,6 +292,7 @@ private struct DockSettings: View {
                         Slider(value: $magnification, in: 1...2.2, step: 0.1)
                     }
                 } else {
+                    Toggle(L10n.dockShowDownloads, isOn: $showDownloads)
                     Text(L10n.dockStyleStripFooter).font(.system(size: 11)).foregroundStyle(.secondary)
                 }
             } header: {

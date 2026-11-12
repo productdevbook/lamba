@@ -152,6 +152,13 @@
 "dock.style.stripFooter" = "Uzun, yüzen bir şerit: Lamba durumu ve Pomodoro ilerlemesi, uygulamalar, saat ve pil.";
 "dock.tab" = "Dock";
 "dock.trash" = "Çöp Sepeti";
+"downloads.empty" = "Henüz bir şey indirilmedi";
+"downloads.inProgress" = "İndiriliyor…";
+"downloads.moveToTrash" = "Çöp Sepeti'ne taşı";
+"downloads.openFolder" = "Klasörü aç";
+"downloads.show" = "Son indirilenleri göster";
+"downloads.showInFinder" = "Finder'da göster";
+"downloads.title" = "Son İndirilenler";
 "export" = "Dışa aktar";
 "export.copy" = "Özeti kopyala";
 "export.csv" = "CSV olarak kaydet…";

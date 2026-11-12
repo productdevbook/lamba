@@ -39,6 +39,7 @@ struct IslandsDockView: View {
     @State private var tileFrames: [String: CGRect] = [:]
     @State private var dwell: Task<Void, Never>?
     @State private var windowListFor: String?
+    @AppStorage(Preferences.Key.dockDownloads) private var showDownloads = true
 
     private var hovered: String? {
         guard let x = layout.pointerX else { return nil }
@@ -68,6 +69,7 @@ struct IslandsDockView: View {
             appsIsland
             HStack(spacing: 4) {
                 ShelfTile(shelf: shelf)
+                if showDownloads { DownloadsTile() }
                 QuickTogglesButton(toggles: toggles)
                 TrashChip()
             }

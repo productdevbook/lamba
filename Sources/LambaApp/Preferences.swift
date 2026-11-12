@@ -20,6 +20,7 @@ enum Preferences {
         static let dockIconSize = "dockIconSize"
         static let dockMagnification = "dockMagnification"
         static let dockPinnedPaths = "dockPinnedPaths"
+        static let dockDownloads = "dockDownloads"
         static let keyboardFlash = "keyboardFlash"
         static let capsLockFlash = "capsLockFlash"
         static let keyboardMoods = "keyboardMoods"
@@ -50,6 +51,7 @@ enum Preferences {
             Key.hideAppleDock: true,
             Key.dockIconSize: 48.0,
             Key.dockMagnification: 1.6,
+            Key.dockDownloads: true,
             Key.keyboardFlash: true,
             Key.capsLockFlash: true,
             Key.keyboardMoods: true,

@@ -152,6 +152,13 @@
 "dock.style.stripFooter" = "Eine lange, schwebende Leiste: Lamba-Status und Pomodoro-Fortschritt, Apps, Uhr und Akku.";
 "dock.tab" = "Dock";
 "dock.trash" = "Papierkorb";
+"downloads.empty" = "Noch nichts heruntergeladen";
+"downloads.inProgress" = "Wird geladen …";
+"downloads.moveToTrash" = "In den Papierkorb legen";
+"downloads.openFolder" = "Ordner öffnen";
+"downloads.show" = "Letzte Downloads zeigen";
+"downloads.showInFinder" = "Im Finder zeigen";
+"downloads.title" = "Letzte Downloads";
 "export" = "Exportieren";
 "export.copy" = "Zusammenfassung kopieren";
 "export.csv" = "Als CSV sichern…";

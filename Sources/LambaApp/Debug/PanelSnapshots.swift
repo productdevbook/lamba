@@ -13,7 +13,11 @@ enum PanelSnapshots {
 
     static func render(to directory: String) {
         Preferences.registerDefaults()
+        RecentDownloads.shared.start()
+        RunLoop.main.run(until: Date().addingTimeInterval(1))
+        save(DownloadsPopover(downloads: .shared).environment(\.colorScheme, .dark), dark: true, to: "\(directory)/downloads-popover.png")
         for dark in [false, true] {
+            save(HStack(spacing: 4) { DownloadsTile(); TrashChip() }.padding(8), dark: dark, to: "\(directory)/downloads-tile-\(dark ? "dark" : "light").png")
             let suffix = dark ? "dark" : "light"
             let idle = makeModel { light, _ in light.set(.solid(.green)) }
             save(PanelView(model: idle), dark: dark, to: "\(directory)/panel-idle-\(suffix).png")

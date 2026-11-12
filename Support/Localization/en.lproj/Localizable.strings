@@ -152,6 +152,13 @@
 "dock.style.stripFooter" = "A long floating bar: Lamba status and Pomodoro progress, apps, clock and battery.";
 "dock.tab" = "Dock";
 "dock.trash" = "Trash";
+"downloads.empty" = "Nothing downloaded yet";
+"downloads.inProgress" = "Downloading…";
+"downloads.moveToTrash" = "Move to Trash";
+"downloads.openFolder" = "Open folder";
+"downloads.show" = "Show recent downloads";
+"downloads.showInFinder" = "Show in Finder";
+"downloads.title" = "Recent Downloads";
 "export" = "Export";
 "export.copy" = "Copy summary";
 "export.csv" = "Save as CSV…";
