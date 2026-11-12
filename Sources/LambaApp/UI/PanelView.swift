@@ -1,29 +1,37 @@
 import LambaCore
 import SwiftUI
 
-/// The popover shown from the menu bar item. Compact by design: one header line, then controls.
+/// The menu bar panel. For people who don't use the Lamba Dock it is the whole app: focus
+/// (Pomodoro), Claude sessions and permission requests, the light, quick toggles and the context.
 struct PanelView: View {
     @ObservedObject var model: AppModel
+    @StateObject private var toggles = QuickToggles()
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HeaderView(model: model)
-            LightPickerView(model: model)
-            Divider().opacity(0.5)
-            PomodoroView(model: model)
-            Divider().opacity(0.5)
+        VStack(alignment: .leading, spacing: 10) {
+            HeaderView(model: model, contexts: model.contexts)
+            FocusCard(model: model)
+            if showsClaude { ClaudeCard(model: model) }
+            LightRow(model: model)
+            TogglesRow(toggles: toggles)
             FooterView(model: model)
         }
-        .padding(14)
-        .frame(width: 272)
+        .padding(12)
+        .frame(width: 320)
+        .onAppear { toggles.refresh() }
+    }
+
+    private var showsClaude: Bool {
+        model.permission != nil || !model.agentSessions.isEmpty || ClaudeHooks.isInstalled
     }
 }
 
 // MARK: - Header
 
-/// App name with a small live LED, and the current mode on the right.
+/// App name and live LED; the current context on the right (click to switch).
 private struct HeaderView: View {
     @ObservedObject var model: AppModel
+    @ObservedObject var contexts: ContextEngine
 
     var body: some View {
         HStack(spacing: 8) {
@@ -31,12 +39,7 @@ private struct HeaderView: View {
                 .frame(width: 14, height: 14)
             Text(L10n.appName).font(.system(size: 13, weight: .semibold))
             Spacer()
-            if !model.isSupported {
-                Text(L10n.unsupportedShort)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-                    .help(L10n.unsupportedBody)
-            } else if model.error != nil {
+            if model.isSupported, model.error != nil {
                 Button(action: model.reinstallHelper) {
                     Label(L10n.fixConnection, systemImage: "exclamationmark.triangle.fill")
                         .font(.system(size: 11, weight: .medium))
@@ -44,12 +47,315 @@ private struct HeaderView: View {
                 }
                 .buttonStyle(PressableStyle())
                 .help(model.error ?? "")
-            } else {
-                Text(model.pomodoro == nil ? L10n.modeTitle(model.mode) : L10n.pomodoroSection)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
+            } else if let current = contexts.current, contexts.contexts.count > 1 {
+                Menu {
+                    ForEach(contexts.contexts) { context in
+                        Button {
+                            contexts.select(context.id)
+                        } label: {
+                            if context.id == current.id {
+                                Label(context.name, systemImage: "checkmark")
+                            } else {
+                                Text(context.name)
+                            }
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 5) {
+                        Circle().fill(Color(nsColor: current.color.color)).frame(width: 7, height: 7)
+                        Text(current.name).font(.system(size: 11, weight: .medium))
+                        Image(systemName: "chevron.down").font(.system(size: 7, weight: .bold)).foregroundStyle(.secondary)
+                    }
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 4)
+                    .background(Capsule().fill(Theme.cardBackground))
+                }
+                .menuStyle(.button)
+                .buttonStyle(.plain)
+                .menuIndicator(.hidden)
+                .fixedSize()
             }
         }
+    }
+}
+
+// MARK: - Focus
+
+/// The hero card: a big ring with the clock (idle) or the time left (running).
+private struct FocusCard: View {
+    @ObservedObject var model: AppModel
+    /// Shared with Settings › General, so the last choice becomes the default.
+    @AppStorage(Preferences.Key.defaultPresetID) private var presetID = PomodoroPreset.default.id
+
+    var body: some View {
+        HStack(spacing: 14) {
+            dial
+            VStack(alignment: .leading, spacing: 8) {
+                if let snapshot = model.pomodoro { running(snapshot) } else { idle }
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(12)
+        .background(Card(tint: model.pomodoro.map { Theme.color(for: $0.phase) }))
+        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: model.pomodoro == nil)
+    }
+
+    private var dial: some View {
+        ZStack {
+            if let snapshot = model.pomodoro {
+                ProgressRing(progress: model.pomodoroProgress, color: Theme.color(for: snapshot.phase), isPaused: snapshot.isPaused, lineWidth: 5)
+                Text(snapshot.formattedRemaining)
+                    .font(.system(size: 15, weight: .semibold, design: .rounded).monospacedDigit())
+            } else {
+                Circle().stroke(Color.primary.opacity(0.1), lineWidth: 5)
+                TimelineView(.periodic(from: .now, by: 15)) { context in
+                    Text(context.date.formatted(date: .omitted, time: .shortened))
+                        .font(.system(size: 14, weight: .semibold, design: .rounded).monospacedDigit())
+                }
+            }
+        }
+        .frame(width: 72, height: 72)
+    }
+
+    private var idle: some View {
+        Group {
+            Text(L10n.pomodoroSection).font(.system(size: 13, weight: .semibold))
+            HStack(spacing: 4) {
+                ForEach(PomodoroPreset.all) { preset in
+                    Chip(title: preset.title, isSelected: presetID == preset.id) { presetID = preset.id }
+                }
+            }
+            Button(action: model.startPomodoro) {
+                Label(L10n.pomodoroStart, systemImage: "play.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 6)
+                    .background(Capsule().fill(Theme.orange))
+            }
+            .buttonStyle(PressableStyle())
+        }
+    }
+
+    @ViewBuilder
+    private func running(_ snapshot: PomodoroSnapshot) -> some View {
+        let sessions = model.pomodoroSettings?.sessionsBeforeLongBreak ?? 4
+        Text(snapshot.isPaused ? L10n.paused : L10n.phaseName(snapshot.phase))
+            .font(.system(size: 13, weight: .semibold))
+        SessionDots(completed: snapshot.completedWorkSessions % sessions, total: sessions, color: Theme.color(for: snapshot.phase))
+        HStack(spacing: 6) {
+            if snapshot.isPaused {
+                IconButton(symbol: "play.fill", help: L10n.pomodoroResume, tint: Theme.color(for: snapshot.phase), action: model.resumePomodoro)
+            } else {
+                IconButton(symbol: "pause.fill", help: L10n.pomodoroPause, action: model.pausePomodoro)
+            }
+            IconButton(symbol: "forward.end.fill", help: L10n.pomodoroSkip, action: model.skipPomodoro)
+            IconButton(symbol: "stop.fill", help: L10n.pomodoroStop, action: model.stopPomodoro)
+        }
+    }
+}
+
+struct ProgressRing: View {
+    let progress: Double
+    let color: Color
+    let isPaused: Bool
+    var lineWidth: CGFloat = 3
+
+    var body: some View {
+        ZStack {
+            Circle().stroke(color.opacity(0.18), lineWidth: lineWidth)
+            Circle()
+                .trim(from: 0, to: max(0.001, progress))
+                .stroke(color.opacity(isPaused ? 0.45 : 1), style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                .animation(.linear(duration: 1), value: progress)
+        }
+    }
+}
+
+private struct SessionDots: View {
+    let completed: Int
+    let total: Int
+    let color: Color
+
+    var body: some View {
+        HStack(spacing: 3) {
+            ForEach(0..<total, id: \.self) { index in
+                Capsule()
+                    .fill(index < completed ? color : Color.primary.opacity(0.12))
+                    .frame(width: 12, height: 3)
+            }
+        }
+    }
+}
+
+// MARK: - Claude
+
+/// A waiting permission (Allow / Deny), then the latest sessions; click one to open its terminal.
+private struct ClaudeCard: View {
+    @ObservedObject var model: AppModel
+
+    private var sessions: [AgentSessionInfo] {
+        let all = model.agentSessions
+        return Array((all.filter { $0.state.event != .done } + all.filter { $0.state.event == .done }).prefix(4))
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 6) {
+                Image(systemName: "sparkle").font(.system(size: 10, weight: .bold)).foregroundStyle(AgentIcon.claude)
+                Text("Claude").font(.system(size: 11, weight: .semibold))
+                Spacer()
+                if !model.remoteMachines.isEmpty {
+                    Text(machinesLine).font(.system(size: 10.5)).foregroundStyle(.secondary)
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.top, 2)
+            if let prompt = model.permission {
+                PermissionRow(prompt: prompt, answer: model.answerPermission) { model.showAgent() }
+            }
+            if sessions.isEmpty && model.permission == nil {
+                Text(L10n.agentNoSessions)
+                    .font(.system(size: 11.5))
+                    .foregroundStyle(.tertiary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+            }
+            ForEach(sessions) { session in
+                AgentSessionRow(session: session).onTapGesture { model.showAgent(session) }
+            }
+        }
+        .padding(4)
+        .background(Card(tint: nil))
+    }
+
+    private var machinesLine: String {
+        let connected = model.remoteMachines.filter(\.isConnected).count
+        return "\(L10n.agentThisMac) + \(connected)/\(model.remoteMachines.count) SSH"
+    }
+}
+
+private struct PermissionRow: View {
+    let prompt: PermissionPrompt
+    let answer: (PermissionDecision) -> Void
+    let show: () -> Void
+
+    var body: some View {
+        HStack(spacing: 9) {
+            Image(systemName: "hand.raised.fill")
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(Theme.orange)
+                .frame(width: 16)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(L10n.permissionTitle(L10n.agentActivity(prompt.detail.tool)))
+                    .font(.system(size: 12.5, weight: .semibold))
+                if let target = prompt.detail.target {
+                    Text(target).font(.system(size: 11.5)).foregroundStyle(.secondary)
+                }
+            }
+            .lineLimit(1)
+            .onTapGesture(perform: show)
+            Spacer(minLength: 4)
+            IconButton(symbol: "xmark", help: L10n.permissionDeny) { answer(.deny) }
+            IconButton(symbol: "checkmark", help: L10n.permissionAllow, tint: Theme.green) { answer(.allow) }
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 7)
+        .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Theme.orange.opacity(0.14)))
+    }
+}
+
+// MARK: - Light
+
+/// The MagSafe light: four swatches and the blinking effects in a menu.
+private struct LightRow: View {
+    @ObservedObject var model: AppModel
+
+    private let options: [(LightMode, String)] = [
+        (.solid(.green), L10n.green),
+        (.solid(.orange), L10n.orange),
+        (.solid(.off), L10n.off),
+        (.solid(.system), L10n.automatic),
+    ]
+
+    private let effects: [(LightMode, String, String)] = [
+        (.solid(.orangeBlinkSlow), L10n.blinkSlow, "tortoise.fill"),
+        (.solid(.orangeBlinkFast), L10n.blinkFast, "hare.fill"),
+        (.pattern(.alternate), L10n.alternate, "arrow.left.arrow.right"),
+    ]
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Text(L10n.lightsSection)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 52, alignment: .leading)
+            ForEach(options, id: \.1) { mode, title in
+                Button { model.select(mode) } label: {
+                    LEDView(appearance: LightAppearance(mode: mode), size: 13)
+                        .frame(width: 30, height: 30)
+                        .background(Circle().fill(model.mode == mode ? Color.accentColor.opacity(0.18) : Theme.cardBackground))
+                        .overlay(Circle().stroke(model.mode == mode ? Color.accentColor.opacity(0.8) : .clear, lineWidth: 1))
+                }
+                .buttonStyle(PressableStyle())
+                .help(title)
+            }
+            Menu {
+                ForEach(effects, id: \.1) { mode, title, symbol in
+                    Button { model.select(mode) } label: { Label(title, systemImage: symbol) }
+                }
+            } label: {
+                Image(systemName: isEffect ? "sparkles" : "ellipsis")
+                    .font(.system(size: 11, weight: .semibold))
+                    .frame(width: 30, height: 30)
+                    .background(Circle().fill(isEffect ? Color.accentColor.opacity(0.18) : Theme.cardBackground))
+            }
+            .menuStyle(.button)
+            .buttonStyle(.plain)
+            .menuIndicator(.hidden)
+            .fixedSize()
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 4)
+        .disabled(!model.isSupported)
+        .opacity(model.isSupported ? 1 : 0.4)
+        .help(model.isSupported ? "" : L10n.unsupportedBody)
+    }
+
+    private var isEffect: Bool { effects.contains { $0.0 == model.mode } }
+}
+
+// MARK: - Quick toggles
+
+private struct TogglesRow: View {
+    @ObservedObject var toggles: QuickToggles
+
+    var body: some View {
+        HStack(spacing: 6) {
+            tile("cup.and.saucer.fill", L10n.togglesKeepAwake, on: toggles.keepAwake, tint: Theme.orange, action: toggles.toggleKeepAwake)
+            tile("moon.zzz.fill", L10n.togglesNoSleep, on: toggles.sleepDisabled, tint: .blue, action: toggles.toggleSleepDisabled)
+            tile("circle.lefthalf.filled", L10n.togglesDarkMode, on: toggles.darkMode, tint: .purple, action: toggles.toggleDarkMode)
+            tile(toggles.micMuted ? "mic.slash.fill" : "mic.fill", L10n.togglesMic, on: toggles.micMuted, tint: .red, action: toggles.toggleMic)
+        }
+    }
+
+    private func tile(_ symbol: String, _ title: String, on: Bool, tint: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 5) {
+                Image(systemName: symbol)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(on ? tint : .secondary)
+                Text(title)
+                    .font(.system(size: 9.5, weight: .medium))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            .frame(maxWidth: .infinity, minHeight: 52)
+            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(on ? tint.opacity(0.18) : Theme.cardBackground))
+        }
+        .buttonStyle(PressableStyle())
+        .help(title)
     }
 }
 
@@ -83,154 +389,6 @@ struct LEDView: View {
         }
         .frame(width: size, height: size)
         .animation(.easeInOut(duration: 0.12), value: color == nil)
-    }
-}
-
-// MARK: - Light picker
-
-private struct LightPickerView: View {
-    @ObservedObject var model: AppModel
-
-    private let options: [(LightMode, String)] = [
-        (.solid(.green), L10n.green),
-        (.solid(.orange), L10n.orange),
-        (.solid(.off), L10n.off),
-        (.solid(.system), L10n.automatic),
-    ]
-
-    private let effects: [(LightMode, String, String)] = [
-        (.solid(.orangeBlinkSlow), L10n.blinkSlow, "tortoise.fill"),
-        (.solid(.orangeBlinkFast), L10n.blinkFast, "hare.fill"),
-        (.pattern(.alternate), L10n.alternate, "arrow.left.arrow.right"),
-    ]
-
-    var body: some View {
-        picker
-            .disabled(!model.isSupported)
-            .opacity(model.isSupported ? 1 : 0.4)
-    }
-
-    private var picker: some View {
-        VStack(spacing: 6) {
-            HStack(spacing: 6) {
-                ForEach(options, id: \.1) { mode, title in
-                    OptionButton(isSelected: isSelected(mode), action: { model.select(mode) }) {
-                        VStack(spacing: 4) {
-                            LEDView(appearance: LightAppearance(mode: mode), size: 12)
-                            Text(title).font(.system(size: 10, weight: .medium)).lineLimit(1)
-                        }
-                        .padding(.vertical, 7)
-                    }
-                }
-            }
-            HStack(spacing: 6) {
-                ForEach(effects, id: \.1) { mode, title, symbol in
-                    OptionButton(isSelected: isSelected(mode), action: { model.select(mode) }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: symbol).font(.system(size: 9, weight: .semibold))
-                            Text(title).font(.system(size: 10, weight: .medium)).lineLimit(1)
-                        }
-                        .padding(.vertical, 5)
-                    }
-                }
-            }
-        }
-    }
-
-    private func isSelected(_ mode: LightMode) -> Bool {
-        model.pomodoro == nil && model.mode == mode
-    }
-}
-
-// MARK: - Pomodoro
-
-private struct PomodoroView: View {
-    @ObservedObject var model: AppModel
-    /// Shared with Settings › General, so the last choice becomes the default.
-    @AppStorage(Preferences.Key.defaultPresetID) private var presetID = PomodoroPreset.default.id
-
-    var body: some View {
-        if let snapshot = model.pomodoro {
-            running(snapshot)
-        } else {
-            idle
-        }
-    }
-
-    /// Preset choice and a start button on one line.
-    private var idle: some View {
-        HStack(spacing: 6) {
-            Image(systemName: "timer").font(.system(size: 12)).foregroundStyle(.secondary)
-            ForEach(PomodoroPreset.all) { preset in
-                OptionButton(isSelected: presetID == preset.id, action: { presetID = preset.id }) {
-                    Text(preset.title)
-                        .font(.system(size: 10, weight: .medium, design: .rounded))
-                        .monospacedDigit()
-                        .padding(.vertical, 5)
-                }
-            }
-            IconButton(symbol: "play.fill", help: L10n.pomodoroStart, tint: Theme.orange, action: model.startPomodoro)
-        }
-    }
-
-    private func running(_ snapshot: PomodoroSnapshot) -> some View {
-        let color = Theme.color(for: snapshot.phase)
-        let sessions = model.pomodoroSettings?.sessionsBeforeLongBreak ?? 4
-        return HStack(spacing: 10) {
-            ProgressRing(progress: model.pomodoroProgress, color: color, isPaused: snapshot.isPaused)
-                .frame(width: 22, height: 22)
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 6) {
-                    Text(snapshot.formattedRemaining)
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
-                        .monospacedDigit()
-                    Text(snapshot.isPaused ? L10n.paused : L10n.phaseName(snapshot.phase))
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                }
-                SessionDots(completed: snapshot.completedWorkSessions % sessions, total: sessions)
-            }
-            Spacer(minLength: 0)
-            if snapshot.isPaused {
-                IconButton(symbol: "play.fill", help: L10n.pomodoroResume, action: model.resumePomodoro)
-            } else {
-                IconButton(symbol: "pause.fill", help: L10n.pomodoroPause, action: model.pausePomodoro)
-            }
-            IconButton(symbol: "forward.end.fill", help: L10n.pomodoroSkip, action: model.skipPomodoro)
-            IconButton(symbol: "stop.fill", help: L10n.pomodoroStop, action: model.stopPomodoro)
-        }
-    }
-}
-
-struct ProgressRing: View {
-    let progress: Double
-    let color: Color
-    let isPaused: Bool
-
-    var body: some View {
-        ZStack {
-            Circle().stroke(color.opacity(0.18), lineWidth: 3)
-            Circle()
-                .trim(from: 0, to: max(0.001, progress))
-                .stroke(color.opacity(isPaused ? 0.45 : 1), style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-                .animation(.linear(duration: 1), value: progress)
-        }
-    }
-}
-
-private struct SessionDots: View {
-    let completed: Int
-    let total: Int
-
-    var body: some View {
-        HStack(spacing: 3) {
-            ForEach(0..<total, id: \.self) { index in
-                Capsule()
-                    .fill(index < completed ? Theme.orange : Color.primary.opacity(0.12))
-                    .frame(width: 10, height: 3)
-            }
-        }
     }
 }
 
@@ -269,26 +427,37 @@ private struct FooterView: View {
 
 // MARK: - Shared controls
 
-/// Equal-width selectable tile used for light modes and presets.
-private struct OptionButton<Label: View>: View {
+/// A small selectable pill (Pomodoro presets).
+private struct Chip: View {
+    let title: String
     let isSelected: Bool
     let action: () -> Void
-    @ViewBuilder let label: () -> Label
 
     var body: some View {
         Button(action: action) {
-            label()
-                .frame(maxWidth: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .fill(isSelected ? Color.accentColor.opacity(0.14) : Theme.cardBackground)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .stroke(isSelected ? Color.accentColor.opacity(0.8) : .clear, lineWidth: 1)
-                )
+            Text(title)
+                .font(.system(size: 10.5, weight: .medium, design: .rounded).monospacedDigit())
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Capsule().fill(isSelected ? Color.accentColor.opacity(0.18) : Theme.cardBackground))
+                .overlay(Capsule().stroke(isSelected ? Color.accentColor.opacity(0.8) : .clear, lineWidth: 1))
         }
         .buttonStyle(PressableStyle())
+    }
+}
+
+/// The panel's card surface, lightly tinted by the Pomodoro phase.
+private struct Card: View {
+    let tint: Color?
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 12, style: .continuous)
+            .fill(Theme.cardBackground)
+            .overlay {
+                if let tint {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous).fill(tint.opacity(0.08))
+                }
+            }
     }
 }
 

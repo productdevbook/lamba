@@ -9,6 +9,9 @@ final class PomodoroController {
     private var timer: PomodoroTimer?
     private var ticker: Timer?
     private var modeBeforeStart: LightMode?
+    /// False once the user picks a light by hand during a session: the timer keeps running but
+    /// leaves the LED alone (phase-change flashes still play on top) until the next start.
+    private(set) var drivesLight = true
 
     var onChange: (() -> Void)?
     /// Called when a work phase ends: (start, end, completed). Skipped or stopped phases are partial.
@@ -26,6 +29,7 @@ final class PomodoroController {
 
     func start(settings: PomodoroSettings = PomodoroSettings()) {
         if timer == nil { modeBeforeStart = light.mode }
+        drivesLight = true
         timer = PomodoroTimer(settings: settings, startingAt: Date())
         startTicker()
         announce(.work)
@@ -57,8 +61,9 @@ final class PomodoroController {
         ticker?.invalidate()
         ticker = nil
         timer = nil
-        if restoreLight { light.set(modeBeforeStart ?? .solid(.system)) }
+        if restoreLight, drivesLight { light.set(modeBeforeStart ?? .solid(.system)) }
         modeBeforeStart = nil
+        drivesLight = true
         onChange?()
     }
 
@@ -105,8 +110,13 @@ final class PomodoroController {
         onChange?()
     }
 
+    /// The user chose a light by hand; keep the timer, stop overriding the LED.
+    func releaseLight() {
+        drivesLight = false
+    }
+
     private func updateLight() {
-        guard let snapshot else { return }
+        guard drivesLight, let snapshot else { return }
         let state: LightState
         if snapshot.isPaused {
             state = .off

@@ -188,6 +188,7 @@ Release notes in `release-notes/<version>.html` are shown in the update window.
 | `KEYCHAIN_PASSWORD` | any string, for the temporary keychain |
 | `APPLE_ID`, `APPLE_APP_PASSWORD`, `APPLE_TEAM_ID` | notarization |
 | `SPARKLE_PRIVATE_KEY` | contents of the exported `lamba-sparkle.key` |
+| `HOMEBREW_TAP_DEPLOY_KEY` | write-enabled deploy key of `productdevbook/homebrew-tap` (the one PortKiller uses); the release updates `Casks/lamba.rb` |
 
 The helper lives outside the app (`/Library/PrivilegedHelperTools`), so an update that changes the
 app <-> helper protocol must bump `LambaVersion.helperProtocol`; the updated app then reinstalls the

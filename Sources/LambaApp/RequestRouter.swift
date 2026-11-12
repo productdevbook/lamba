@@ -138,7 +138,8 @@ final class RequestRouter {
 
     /// A manual light choice ends a running Pomodoro, so the two never fight over the LED.
     func setManually(_ mode: LightMode) {
-        if pomodoro.isRunning { pomodoro.stop(restoreLight: false) }
+        // A Pomodoro keeps running; it just stops driving the LED.
+        if pomodoro.isRunning { pomodoro.releaseLight() }
         light.set(mode)
     }
 

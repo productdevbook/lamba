@@ -207,7 +207,7 @@ private struct AgentOverview: View {
     }
 }
 
-private struct AgentSessionRow: View {
+struct AgentSessionRow: View {
     let session: AgentSessionInfo
     @State private var isHovered = false
 
@@ -252,7 +252,7 @@ private struct AgentSessionRow: View {
     }
 }
 
-private struct StateMark: View {
+struct StateMark: View {
     let event: AgentEvent
 
     var body: some View {

@@ -53,8 +53,14 @@ your Mac.
 
 ## Install
 
-**[Download Lamba](https://github.com/productdevbook/lamba/releases/latest/download/Lamba.dmg)**, open the DMG and drag Lamba to
-Applications. On first launch it asks for your password once to install its small helper (the only
+With [Homebrew](https://brew.sh):
+
+```sh
+brew install --cask productdevbook/tap/lamba
+```
+
+Or **[download Lamba](https://github.com/productdevbook/lamba/releases/latest/download/Lamba.dmg)**,
+open the DMG and drag Lamba to Applications. On first launch it asks for your password once to install its small helper (the only
 part that talks to the LED) and the `lamba` command.
 
 Lamba updates itself: it checks once a day and installs new versions after asking. You can also use
@@ -120,6 +126,20 @@ swift test
 
 Lamba is built in public by [productdevbook](https://github.com/productdevbook). If it makes your
 day calmer, consider [sponsoring](https://github.com/sponsors/productdevbook).
+
+### hamur
+
+Lamba is made by the people behind [hamur](https://hamur.dev), and hamur keeps it going.
+
+hamur is a set of headless UI components for React, Vue, Svelte, Angular and Solid. Focus,
+keyboard, ARIA and state, the parts that take months to get right, are written once below the
+framework; a thin layer on top speaks each one. Every adapter runs the same behavior tests in
+Chromium, Firefox and WebKit, so a dialog or a combobox works the same way everywhere. No styles,
+your rules.
+
+If you build interfaces for more than one framework, or want accessible components without fighting
+a design system, take a look at [hamur.dev](https://hamur.dev) and the
+[source on GitHub](https://github.com/productdevbook/hamur).
 
 <a href="https://hamur.dev">
   <picture>

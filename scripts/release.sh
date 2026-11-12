@@ -19,6 +19,8 @@
 # Publishing: downloads and the update feed are GitHub releases of RELEASES_REPO
 # (default productdevbook/lamba).
 #   PUBLISH=1                create release v<version> with the DMG, Lamba.dmg and appcast.xml (uses `gh`)
+#   TAP=1                    update Casks/lamba.rb in productdevbook/homebrew-tap (`brew install --cask
+#                            productdevbook/tap/lamba`); pushes over SSH (GIT_SSH_COMMAND for a deploy key)
 set -euo pipefail
 
 NOTARIZE=1
@@ -143,6 +145,52 @@ if [ "${PUBLISH:-}" = 1 ]; then
   [ -f "$NOTES" ] && NOTES_ARGS=(--notes "$(sed -e 's/<[^>]*>//g' "$NOTES" | sed '/^[[:space:]]*$/d')")
   gh release create "v$VERSION" --repo "$RELEASES_REPO" --title "Lamba $VERSION" "${NOTES_ARGS[@]}" \
     "$DMG" "$OUT/Lamba.dmg" "$APPCAST_DIR/appcast.xml"
+fi
+
+if [ "${TAP:-}" = 1 ]; then
+  echo "→ Homebrew cask $VERSION"
+  SHA256=$(shasum -a 256 "$DMG" | cut -d' ' -f1)
+  TAP_DIR="$OUT/homebrew-tap"
+  git clone -q git@github.com:productdevbook/homebrew-tap.git "$TAP_DIR"
+  mkdir -p "$TAP_DIR/Casks"
+  cat > "$TAP_DIR/Casks/lamba.rb" <<CASK
+cask "lamba" do
+  version "$VERSION"
+  sha256 "$SHA256"
+
+  url "https://github.com/productdevbook/lamba/releases/download/v#{version}/Lamba-#{version}.dmg"
+  name "Lamba"
+  desc "Status light, Pomodoro, Dock and Claude Code sessions for the menu bar"
+  homepage "https://github.com/productdevbook/lamba"
+
+  auto_updates true
+  depends_on arch: :arm64
+  depends_on macos: ">= :ventura"
+
+  app "Lamba.app"
+
+  uninstall quit:      "dev.hamur.lamba",
+            launchctl: "dev.hamur.lamba.helper",
+            delete:    [
+              "/Library/LaunchDaemons/dev.hamur.lamba.helper.plist",
+              "/Library/PrivilegedHelperTools/dev.hamur.lamba.helper",
+              "/usr/local/bin/lamba",
+            ]
+
+  zap trash: [
+    "~/Library/Application Support/Lamba",
+    "~/Library/Caches/dev.hamur.lamba",
+    "~/Library/HTTPStorages/dev.hamur.lamba",
+    "~/Library/Preferences/dev.hamur.lamba.plist",
+  ]
+end
+CASK
+  git -C "$TAP_DIR" add Casks/lamba.rb
+  if git -C "$TAP_DIR" commit -q -m "Update lamba to $VERSION"; then
+    git -C "$TAP_DIR" push -q
+  else
+    echo "  (cask already up to date)"
+  fi
 fi
 
 echo

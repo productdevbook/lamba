@@ -61,11 +61,20 @@ jobs:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
           GH_TOKEN: ${{ github.token }}
           PUBLISH: '1'
+          TAP: '1'
+          # Write-enabled deploy key of productdevbook/homebrew-tap (same as PortKiller's).
+          HOMEBREW_TAP_DEPLOY_KEY: ${{ secrets.HOMEBREW_TAP_DEPLOY_KEY }}
         run: |
           set -euo pipefail
           swift package resolve
           export SPARKLE_KEY_FILE="$RUNNER_TEMP/sparkle.key"
           printf '%s' "$SPARKLE_PRIVATE_KEY" > "$SPARKLE_KEY_FILE"
+          TAP_KEY="$RUNNER_TEMP/homebrew_tap_key"
+          printf '%s\n' "$HOMEBREW_TAP_DEPLOY_KEY" > "$TAP_KEY"
+          chmod 600 "$TAP_KEY"
+          export GIT_SSH_COMMAND="ssh -i $TAP_KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           ./scripts/release.sh "${{ steps.ver.outputs.version }}"
 
       - name: Keep the DMG and feed
