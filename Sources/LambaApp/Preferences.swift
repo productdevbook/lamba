@@ -25,6 +25,9 @@ enum Preferences {
         static let keyboardMoods = "keyboardMoods"
         static let keyboardOffAfter = "keyboardOffAfter"
         static let keyboardNightDim = "keyboardNightDim"
+        static let keyboardNightStart = "keyboardNightStart"
+        static let keyboardNightEnd = "keyboardNightEnd"
+        static let keyboardBrightness = "keyboardBrightness"
     }
 
     private static var store: UserDefaults { .standard }
@@ -52,6 +55,9 @@ enum Preferences {
             Key.keyboardMoods: true,
             Key.keyboardOffAfter: true,
             Key.keyboardNightDim: true,
+            Key.keyboardNightStart: 20,
+            Key.keyboardNightEnd: 8,
+            Key.keyboardBrightness: 0.5,
         ])
     }
 
@@ -64,10 +70,15 @@ enum Preferences {
     static var keyboardOffAfter: Bool { store.bool(forKey: Key.keyboardOffAfter) }
     static var keyboardNightDim: Bool { store.bool(forKey: Key.keyboardNightDim) }
 
-    /// 22:00–07:00 local time.
+    /// Brightest level of keyboard flashes by day (0...1).
+    static var keyboardBrightness: Float { Float(store.double(forKey: Key.keyboardBrightness)) }
+
+    /// Between the night start and end hours (local time); an end before the start spans midnight.
     static var isNight: Bool {
         let hour = Calendar.current.component(.hour, from: Date())
-        return hour >= 22 || hour < 7
+        let start = store.integer(forKey: Key.keyboardNightStart), end = store.integer(forKey: Key.keyboardNightEnd)
+        if start == end { return false }
+        return start < end ? (hour >= start && hour < end) : (hour >= start || hour < end)
     }
 
     static var hapticStyle: HapticStyle {

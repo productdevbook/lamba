@@ -108,9 +108,23 @@ private struct GeneralSettings: View {
     @AppStorage(Preferences.Key.keyboardMoods) private var keyboardMoods = true
     @AppStorage(Preferences.Key.keyboardOffAfter) private var keyboardOffAfter = true
     @AppStorage(Preferences.Key.keyboardNightDim) private var keyboardNightDim = true
+    @AppStorage(Preferences.Key.keyboardNightStart) private var nightStart = 20
+    @AppStorage(Preferences.Key.keyboardNightEnd) private var nightEnd = 8
+    @AppStorage(Preferences.Key.keyboardBrightness) private var keyboardBrightness = 0.5
     @AppStorage(Preferences.Key.hapticWaveform) private var waveform = HapticStyle.default.waveform
     @AppStorage(Preferences.Key.hapticIntensity) private var intensity = HapticStyle.default.intensity
     @AppStorage(Preferences.Key.hapticPulses) private var pulses = HapticStyle.default.pulses
+
+    private var nightHours: some View {
+        HStack {
+            Picker(L10n.keyboardNightStart, selection: $nightStart) { hourOptions }
+            Picker(L10n.keyboardNightEnd, selection: $nightEnd) { hourOptions }
+        }
+    }
+
+    private var hourOptions: some View {
+        ForEach(0..<24, id: \.self) { Text(String(format: "%02d:00", $0)).tag($0) }
+    }
 
     private var hapticStyle: HapticStyle { HapticStyle(waveform: waveform, intensity: intensity, pulses: pulses) }
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
@@ -159,7 +173,11 @@ private struct GeneralSettings: View {
                 Toggle(L10n.flashOnPhaseChange, isOn: $flash)
                 Toggle(L10n.keyboardFlash, isOn: $keyboardFlash)
                 Toggle(L10n.keyboardOffAfter, isOn: $keyboardOffAfter)
+                LabeledContent(L10n.keyboardBrightness) {
+                    Slider(value: $keyboardBrightness, in: 0.05...1).frame(width: 160)
+                }
                 Toggle(L10n.keyboardNightDim, isOn: $keyboardNightDim)
+                if keyboardNightDim { nightHours }
                 Toggle(L10n.capsLockFlash, isOn: $capsLockFlash)
                 Toggle(L10n.keyboardMoods, isOn: $keyboardMoods)
             }

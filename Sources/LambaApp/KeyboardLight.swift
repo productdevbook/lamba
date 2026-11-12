@@ -107,9 +107,9 @@ final class KeyboardLight {
         }
     }
 
-    /// Brightest level Lamba uses: full by day, barely visible at night.
+    /// Brightest level Lamba uses: the user's choice by day, barely visible at night.
     private var peak: Float {
-        Preferences.keyboardNightDim && Preferences.isNight ? 0.06 : 1
+        Preferences.keyboardNightDim && Preferences.isNight ? 0.02 : max(0.02, Preferences.keyboardBrightness)
     }
 
     /// Remembers the user's settings the first time Lamba changes the light.
