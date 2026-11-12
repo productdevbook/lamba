@@ -16,4 +16,11 @@ lamba_smc_status lamba_smc_read_led(uint8_t *out_value);
 /// Writes the MagSafe LED key (ACLC). Requires root.
 lamba_smc_status lamba_smc_write_led(uint8_t value);
 
+/// Reads any SMC key (4 characters). `bytes` gets up to 32 bytes; `size` and `type` (four-char
+/// code) describe them. Works without root for most keys.
+lamba_smc_status lamba_smc_read_key(const char *key, uint8_t *bytes, uint32_t *size, uint32_t *type);
+
+/// Writes any SMC key with exactly its own size. Requires root.
+lamba_smc_status lamba_smc_write_key(const char *key, const uint8_t *bytes, uint32_t size);
+
 #endif

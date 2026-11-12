@@ -8,6 +8,9 @@ public enum HelperRequest: Codable, Equatable, Sendable {
     case get
     /// `pmset -a disablesleep 1/0`: keep the Mac awake, even with the lid closed.
     case sleep(disabled: Bool)
+    /// Fan speed: `nil` gives control back to macOS; 0...1 holds every fan between its minimum
+    /// and maximum speed.
+    case fans(level: Double?)
 }
 
 public struct HelperResponse: Codable, Equatable, Sendable {

@@ -80,6 +80,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         tunnels.stop()
         model?.contexts.stop()
         KeyboardLight.shared.mood = .normal // gives the keyboard light back to the user
+        Thermals.shared.releaseFans()
     }
 
     /// First run explains the password prompt before it appears; later runs (e.g. after an update

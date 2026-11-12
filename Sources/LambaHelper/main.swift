@@ -1,8 +1,9 @@
 // Lamba root helper.
 //
 // Runs as a launchd daemon and is the only Lamba component with root rights. It does exactly two
-// things: read or write the MagSafe LED key (only whitelisted `LightState` values) and turn system
-// sleep on or off (`pmset disablesleep`), only from root or the user currently logged in at the console.
+// things: read or write the MagSafe LED key (only whitelisted `LightState` values), turn system
+// sleep on or off (`pmset disablesleep`) and set the fan speed, only from root or the user
+// currently logged in at the console.
 
 import CSMC
 import Foundation
@@ -42,6 +43,9 @@ func respond(to request: HelperRequest) -> HelperResponse {
             return HelperResponse(ok: false, error: "pmset: \(error)")
         }
         return process.terminationStatus == 0 ? HelperResponse(ok: true) : HelperResponse(ok: false, error: "pmset failed.")
+    case let .fans(level):
+        let error = level.map { FanControl.hold(level: $0) } ?? FanControl.release()
+        return error == nil ? HelperResponse(ok: true) : HelperResponse(ok: false, error: error)
     case .get:
         var value: UInt8 = 0
         let status = lamba_smc_read_led(&value)
@@ -68,6 +72,16 @@ if let index = CommandLine.arguments.firstIndex(of: "--socket"), index + 1 < Com
 }
 
 signal(SIGPIPE, SIG_IGN)
+
+// Fans held by a helper that died stay held; give them back to macOS on start and on stop.
+FanControl.releaseIfHeld()
+signal(SIGTERM, SIG_IGN)
+let termination = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
+termination.setEventHandler {
+    _ = FanControl.release()
+    exit(0)
+}
+termination.resume()
 
 let server: UnixSocketServer
 do {

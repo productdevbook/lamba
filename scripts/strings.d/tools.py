@@ -20,7 +20,28 @@ STRINGS = {
     "system.mem.wired": ("Wired (system)", "Sistem (wired)", "Reserviert (System)"),
     "system.mem.compressed": ("Compressed", "Sıkıştırılmış", "Komprimiert"),
     "system.mem.cache": ("Cached files (not counted)", "Önbellek (sayılmaz)", "Dateicache (nicht gezählt)"),
+    "system.topApps": ("Most used by", "En çok kullananlar", "Am meisten genutzt von"),
     "system.network": ("Network", "Ağ", "Netzwerk"),
     "system.openMonitor": ("Open Activity Monitor", "Etkinlik Monitörü'nü aç", "Aktivitätsanzeige öffnen"),
     "system.show": ("Show system status (CPU, memory, network)", "Sistem durumunu göster (işlemci, bellek, ağ)", "Systemstatus zeigen (CPU, Speicher, Netzwerk)"),
 }
+
+STRINGS.update({
+    "thermals.temperatures": ("Temperatures", "Sıcaklıklar", "Temperaturen"),
+    "thermals.chip": ("Chip", "Çip", "Chip"),
+    "thermals.chipHottest": ("hottest", "en sıcak", "max."),
+    "thermals.battery": ("Battery", "Pil", "Batterie"),
+    "thermals.ssd": ("SSD", "SSD", "SSD"),
+    "thermals.fans": ("Fans", "Fanlar", "Lüfter"),
+    "thermals.fan": ("Fan %d", "Fan %d", "Lüfter %d"),
+    "thermals.fanOff": ("Off", "Kapalı", "Aus"),
+    "thermals.range": ("%d–%d rpm", "%d–%d rpm", "%d–%d U/min"),
+    "thermals.auto": ("Auto", "Otomatik", "Auto"),
+    "thermals.max": ("Max", "Tam", "Max"),
+    "thermals.custom": ("Custom", "Özel", "Eigene"),
+    "thermals.footer": (
+        "Auto lets macOS decide. Lamba goes back to Auto when it quits.",
+        "Otomatik'te macOS karar verir. Lamba kapanınca Otomatik'e döner.",
+        "Bei Auto entscheidet macOS. Beim Beenden kehrt Lamba zu Auto zurück.",
+    ),
+})

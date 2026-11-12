@@ -81,3 +81,66 @@ lamba_smc_status lamba_smc_read_led(uint8_t *out_value) {
 lamba_smc_status lamba_smc_write_led(uint8_t value) {
     return led_transfer(SMC_CMD_WRITE_BYTES, &value);
 }
+
+// MARK: - Any key (fans, temperatures)
+
+static UInt32 four_cc(const char *key) {
+    return ((UInt32)(unsigned char)key[0] << 24) | ((UInt32)(unsigned char)key[1] << 16)
+         | ((UInt32)(unsigned char)key[2] << 8) | (UInt32)(unsigned char)key[3];
+}
+
+/// Kept open: fans are read every couple of seconds.
+static io_connect_t shared_conn = 0;
+
+static lamba_smc_status shared_open(void) {
+    if (shared_conn) return LAMBA_SMC_OK;
+    return smc_open(&shared_conn);
+}
+
+static lamba_smc_status key_info(const char *key, UInt32 *size, UInt32 *type) {
+    smc_param_t in = {0}, out = {0};
+    in.key = four_cc(key);
+    in.command = SMC_CMD_READ_KEYINFO;
+    if (smc_call(shared_conn, &in, &out) != KERN_SUCCESS || out.result != 0 || out.key_info.data_size == 0) {
+        return LAMBA_SMC_KEY_MISSING;
+    }
+    *size = out.key_info.data_size;
+    if (type) *type = out.key_info.data_type;
+    return LAMBA_SMC_OK;
+}
+
+lamba_smc_status lamba_smc_read_key(const char *key, uint8_t *bytes, uint32_t *size, uint32_t *type) {
+    lamba_smc_status status = shared_open();
+    if (status != LAMBA_SMC_OK) return status;
+    UInt32 key_size = 0, key_type = 0;
+    status = key_info(key, &key_size, &key_type);
+    if (status != LAMBA_SMC_OK) return status;
+    if (key_size > 32) return LAMBA_SMC_IO_FAILED;
+
+    smc_param_t in = {0}, out = {0};
+    in.key = four_cc(key);
+    in.command = SMC_CMD_READ_BYTES;
+    in.key_info.data_size = key_size;
+    if (smc_call(shared_conn, &in, &out) != KERN_SUCCESS || out.result != 0) return LAMBA_SMC_IO_FAILED;
+    memcpy(bytes, out.bytes, key_size);
+    *size = key_size;
+    if (type) *type = key_type;
+    return LAMBA_SMC_OK;
+}
+
+lamba_smc_status lamba_smc_write_key(const char *key, const uint8_t *bytes, uint32_t size) {
+    lamba_smc_status status = shared_open();
+    if (status != LAMBA_SMC_OK) return status;
+    UInt32 key_size = 0;
+    status = key_info(key, &key_size, NULL);
+    if (status != LAMBA_SMC_OK) return status;
+    if (key_size != size || size > 32) return LAMBA_SMC_IO_FAILED;
+
+    smc_param_t in = {0}, out = {0};
+    in.key = four_cc(key);
+    in.command = SMC_CMD_WRITE_BYTES;
+    in.key_info.data_size = size;
+    memcpy(in.bytes, bytes, size);
+    if (smc_call(shared_conn, &in, &out) != KERN_SUCCESS || out.result != 0) return LAMBA_SMC_IO_FAILED;
+    return LAMBA_SMC_OK;
+}

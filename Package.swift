@@ -14,7 +14,7 @@ let package = Package(
         .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.0"),
     ],
     targets: [
-        // Thin C wrapper around the AppleSMC user client (only the LED key).
+        // Thin C wrapper around the AppleSMC user client (LED, fans, any key).
         .target(
             name: "CSMC",
             linkerSettings: [.linkedFramework("IOKit")]
@@ -24,7 +24,7 @@ let package = Package(
         // Menu bar app.
         .executableTarget(
             name: "LambaApp",
-            dependencies: ["LambaCore", "CSMC", .product(name: "Sparkle", package: "Sparkle")], // CSMC: read-only LED probe
+            dependencies: ["LambaCore", "CSMC", .product(name: "Sparkle", package: "Sparkle")], // CSMC: LED probe, fan readings
             linkerSettings: [.unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"])]
         ),
         // Root launchd daemon; the only component that touches the SMC.

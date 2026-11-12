@@ -11,6 +11,7 @@ extension L10n {
     static let systemShow = tr("system.show")
     static let systemLastHour = tr("system.lastHour")
     static let systemTotal = tr("system.total")
+    static let systemTopApps = tr("system.topApps")
     static let systemMemApp = tr("system.mem.app")
     static let systemMemWired = tr("system.mem.wired")
     static let systemMemCompressed = tr("system.mem.compressed")
@@ -81,6 +82,7 @@ final class SystemStatus: ObservableObject {
             }
         }
         lastBytes = (bytes.down, bytes.up, now)
+        Thermals.shared.sample()
     }
 
     private func record(down: UInt64, up: UInt64, at now: Date) {
@@ -157,6 +159,7 @@ final class SystemStatus: ObservableObject {
 /// Two thin gauges (CPU, memory) side by side; a click shows the details.
 struct SystemStatusTile: View {
     @ObservedObject var status = SystemStatus.shared
+    @ObservedObject var thermals = Thermals.shared
     var onDark = false
     @State private var frame: CGRect = .zero
 
@@ -169,6 +172,7 @@ struct SystemStatusTile: View {
             HStack(spacing: 7) {
                 gauge("CPU", status.cpu)
                 gauge("RAM", status.memory)
+                if let chip = thermals.chip { gauge("°C", chip / 100, text: "\(Int(chip.rounded()))°") }
             }
             .padding(.horizontal, 8)
             .frame(height: 40)
@@ -180,12 +184,15 @@ struct SystemStatusTile: View {
         .accessibilityLabel("\(L10n.systemCPU) \(Int(status.cpu * 100))%, \(L10n.systemMemory) \(Int(status.memory * 100))%")
         .frame(maxHeight: .infinity)
         .modifier(AnchorReader(frame: $frame))
-        .onAppear { status.start() }
+        .onAppear {
+            status.start()
+            NetworkByApp.shared.start()
+        }
     }
 
-    private func gauge(_ label: String, _ value: Double) -> some View {
+    private func gauge(_ label: String, _ value: Double, text: String? = nil) -> some View {
         VStack(spacing: 3) {
-            Text("\(Int((value * 100).rounded()))%")
+            Text(text ?? "\(Int((value * 100).rounded()))%")
                 .font(.system(size: 11, weight: .semibold, design: .rounded).monospacedDigit())
                 .foregroundStyle(ink.opacity(0.9))
             Bar(value: value, track: ink.opacity(0.12)).frame(width: 30, height: 3)
@@ -249,6 +256,7 @@ struct SystemStatusPopover: View {
             }
             .font(.system(size: 11.5).monospacedDigit())
             NetworkHour(status: status)
+            ThermalsSection()
 
             Button {
                 DockPopover.shared.close()
@@ -343,6 +351,11 @@ private struct NetworkHour: View {
                 legend(Color.green, "arrow.up", bytes(status.hourUp))
                 Spacer()
             }
+            if !NetworkByApp.shared.top.isEmpty {
+                Divider().opacity(0.4)
+                Text(L10n.systemTopApps).font(.system(size: 11)).foregroundStyle(.secondary)
+            }
+            TopNetworkApps()
         }
         .padding(10)
         .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Color.white.opacity(0.05)))
@@ -381,5 +394,35 @@ private struct NetworkHour: View {
 
     private func bytes(_ value: UInt64) -> String {
         ByteCountFormatter.string(fromByteCount: Int64(value), countStyle: .file)
+    }
+}
+
+// MARK: - Network by app
+
+private struct TopNetworkApps: View {
+    @ObservedObject var usage = NetworkByApp.shared
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            ForEach(usage.top) { app in
+                HStack(spacing: 7) {
+                    icon(app).frame(width: 16, height: 16)
+                    Text(app.name).font(.system(size: 11)).lineLimit(1)
+                    Spacer()
+                    Text(ByteCountFormatter.string(fromByteCount: Int64(app.bytes), countStyle: .file))
+                        .font(.system(size: 11).monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .onAppear { usage.start() }
+    }
+
+    @ViewBuilder private func icon(_ app: NetworkByApp.Usage) -> some View {
+        if let url = app.appURL {
+            Image(nsImage: NSWorkspace.shared.icon(forFile: url.path)).resizable()
+        } else {
+            Image(systemName: "gearshape").font(.system(size: 10)).foregroundStyle(.secondary)
+        }
     }
 }
