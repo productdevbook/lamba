@@ -239,37 +239,110 @@ private struct ShelfItem: View {
 
 // MARK: - Drop target
 
-private struct ShelfDropTarget: ViewModifier {
+/// The whole right island takes dropped files. While files are dragged over it, it splits into
+/// two large targets: park them on the shelf, or shrink and convert them. The half under the
+/// pointer decides.
+private struct IslandDropTarget: ViewModifier {
     let shelf: ShelfModel
+    @AppStorage(Preferences.Key.dockConvert) private var convertEnabled = true
     @State private var targeted = false
+    @State private var overConvert = false
+    @State private var frame: CGRect = .zero
 
     func body(content: Content) -> some View {
         content
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(Color.accentColor, lineWidth: 2.5)
-                    .opacity(targeted ? 1 : 0)
-                    .allowsHitTesting(false)
-            )
+            .overlay { if targeted { zones.transition(.opacity) } }
             .animation(.easeOut(duration: 0.15), value: targeted)
-            .onDrop(of: [.fileURL], isTargeted: $targeted) { providers in
-                var accepted = false
-                for provider in providers where provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
-                    accepted = true
-                    provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
-                        var url: URL?
-                        if let data = item as? Data { url = URL(dataRepresentation: data, relativeTo: nil) }
-                        else if let value = item as? URL { url = value }
-                        guard let url else { return }
-                        DispatchQueue.main.async { shelf.add([url]) }
-                    }
-                }
-                return accepted
+            .animation(.easeOut(duration: 0.12), value: overConvert)
+            .modifier(AnchorReader(frame: $frame))
+            .onDrop(of: [.fileURL], delegate: Delegate(
+                width: { frame.width },
+                convertEnabled: convertEnabled,
+                targeted: $targeted,
+                overConvert: $overConvert,
+                drop: drop
+            ))
+    }
+
+    private var zones: some View {
+        DropZones(convertEnabled: convertEnabled, overConvert: overConvert)
+    }
+
+    private func drop(_ urls: [URL], convert: Bool) {
+        if convert {
+            MediaConverter.shared.set(urls)
+            DockPopover.shared.close()
+            DockPopover.shared.toggle(id: "convert", anchor: frame) { ConvertPopover(converter: .shared) }
+        } else {
+            shelf.add(urls)
+        }
+    }
+
+    private struct Delegate: DropDelegate {
+        let width: () -> CGFloat
+        let convertEnabled: Bool
+        @Binding var targeted: Bool
+        @Binding var overConvert: Bool
+        let drop: ([URL], Bool) -> Void
+
+        func validateDrop(info: DropInfo) -> Bool { info.hasItemsConforming(to: [.fileURL]) }
+
+        func dropEntered(info: DropInfo) {
+            targeted = true
+            update(info)
+        }
+
+        func dropUpdated(info: DropInfo) -> DropProposal? {
+            update(info)
+            return DropProposal(operation: .copy)
+        }
+
+        func dropExited(info: DropInfo) { targeted = false }
+
+        func performDrop(info: DropInfo) -> Bool {
+            let convert = convertEnabled && info.location.x > width() / 2
+            targeted = false
+            FileDrop.load(info.itemProviders(for: [.fileURL])) { drop($0, convert) }
+            return true
+        }
+
+        private func update(_ info: DropInfo) {
+            overConvert = convertEnabled && info.location.x > width() / 2
+        }
+    }
+}
+
+/// The two targets shown over the right island while files are dragged over it.
+struct DropZones: View {
+    let convertEnabled: Bool
+    let overConvert: Bool
+
+    var body: some View {
+        HStack(spacing: 6) {
+            zone(symbol: "tray.and.arrow.down.fill", title: L10n.shelfTitle, active: !overConvert)
+            if convertEnabled {
+                zone(symbol: "wand.and.stars", title: L10n.convertTitle, active: overConvert)
             }
+        }
+        .padding(5)
+        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(.ultraThinMaterial))
+        .allowsHitTesting(false)
+    }
+
+    private func zone(symbol: String, title: String, active: Bool) -> some View {
+        VStack(spacing: 3) {
+            Image(systemName: symbol).font(.system(size: 15, weight: .semibold))
+            Text(title).font(.system(size: 10.5, weight: .semibold))
+        }
+        .foregroundStyle(active ? Color.white : Color.primary.opacity(0.6))
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(active ? Color.accentColor : Color.primary.opacity(0.06)))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Color.accentColor.opacity(active ? 0 : 0.5), style: StrokeStyle(lineWidth: 1.5, dash: [4, 3])))
+        .scaleEffect(active ? 1 : 0.96)
     }
 }
 
 extension View {
-    /// Accepts files dropped on this view (the whole right island) and parks them on the shelf.
-    func shelfDropTarget(_ shelf: ShelfModel) -> some View { modifier(ShelfDropTarget(shelf: shelf)) }
+    /// Accepts files dropped anywhere on this view (the whole right island): shelf or convert.
+    func shelfDropTarget(_ shelf: ShelfModel) -> some View { modifier(IslandDropTarget(shelf: shelf)) }
 }

@@ -74,7 +74,7 @@ struct IslandsDockView: View {
                 ShelfTile(shelf: shelf)
                 if showSystem { SystemStatusTile() }
                 if showClipboard { ClipboardTile() }
-                if showConvert { ConvertTile() }
+                if showConvert { ConvertTile(acceptsDrop: false) }
                 if showDownloads { DownloadsTile() }
                 QuickTogglesButton(toggles: toggles)
                 TrashChip()

@@ -37,6 +37,9 @@ enum PanelSnapshots {
             }
         }
         MediaConverter.shared.set([URL(fileURLWithPath: "/System/Library/Desktop Pictures")])
+        for dark in [false, true] {
+            save(DropZones(convertEnabled: true, overConvert: true).frame(width: 260, height: 52).padding(8), dark: dark, to: "\(directory)/dropzones-\(dark ? "dark" : "light").png")
+        }
         save(ConvertPopover(converter: .shared).environment(\.colorScheme, .dark), dark: true, to: "\(directory)/convert-popover.png")
     }
 

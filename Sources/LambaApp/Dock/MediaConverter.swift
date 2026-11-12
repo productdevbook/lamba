@@ -290,6 +290,8 @@ final class MediaConverter: ObservableObject {
 struct ConvertTile: View {
     @ObservedObject var converter = MediaConverter.shared
     var onDark = false
+    /// In the islands Dock the whole right island takes the drop instead.
+    var acceptsDrop = true
     @State private var frame: CGRect = .zero
     @State private var targeted = false
 
@@ -316,7 +318,7 @@ struct ConvertTile: View {
         .accessibilityLabel(L10n.convertTitle)
         .frame(maxHeight: .infinity)
         .modifier(AnchorReader(frame: $frame))
-        .onDrop(of: [.fileURL], isTargeted: $targeted) { providers in
+        .onDrop(of: acceptsDrop ? [.fileURL] : [], isTargeted: $targeted) { providers in
             FileDrop.load(providers) { urls in
                 converter.set(urls)
                 DockPopover.shared.close()
