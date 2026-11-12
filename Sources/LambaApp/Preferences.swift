@@ -22,6 +22,7 @@ enum Preferences {
         static let dockPinnedPaths = "dockPinnedPaths"
         static let dockDownloads = "dockDownloads"
         static let dockClipboard = "dockClipboard"
+        static let dockConvert = "dockConvert"
         static let dockSystemStatus = "dockSystemStatus"
         static let keyboardFlash = "keyboardFlash"
         static let capsLockFlash = "capsLockFlash"
@@ -55,6 +56,7 @@ enum Preferences {
             Key.dockMagnification: 1.6,
             Key.dockDownloads: true,
             Key.dockClipboard: true,
+            Key.dockConvert: true,
             Key.dockSystemStatus: true,
             Key.keyboardFlash: true,
             Key.capsLockFlash: true,

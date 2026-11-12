@@ -19,6 +19,16 @@ if let index = CommandLine.arguments.firstIndex(of: "--fans"), index + 1 < Comma
     }
     exit(0)
 }
+if let index = CommandLine.arguments.firstIndex(of: "--convert") {
+    let converter = MediaConverter.shared
+    converter.set(CommandLine.arguments[(index + 1)...].map { URL(fileURLWithPath: $0) })
+    converter.maxPixels = 1280
+    converter.videoPreset = .p720
+    converter.start()
+    while converter.isRunning { RunLoop.main.run(until: Date().addingTimeInterval(0.2)) }
+    for job in converter.jobs { print(job.output.path, job.resultSize ?? -1, job.error ?? "") }
+    exit(0)
+}
 if let index = CommandLine.arguments.firstIndex(of: "--snapshot"), index + 1 < CommandLine.arguments.count {
     _ = NSApplication.shared
     MainActor.assumeIsolated { PanelSnapshots.render(to: CommandLine.arguments[index + 1]) }

@@ -36,6 +36,8 @@ enum PanelSnapshots {
                 save(SettingsView(model: idle, tab: tab).frame(width: 900, height: 640), dark: dark, to: "\(directory)/settings-\(tab)-\(suffix).png")
             }
         }
+        MediaConverter.shared.set([URL(fileURLWithPath: "/System/Library/Desktop Pictures")])
+        save(ConvertPopover(converter: .shared).environment(\.colorScheme, .dark), dark: true, to: "\(directory)/convert-popover.png")
     }
 
     private static func makeModel(_ setUp: (LightController, PomodoroController) -> Void) -> AppModel {

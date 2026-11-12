@@ -41,6 +41,7 @@ struct IslandsDockView: View {
     @State private var windowListFor: String?
     @AppStorage(Preferences.Key.dockDownloads) private var showDownloads = true
     @AppStorage(Preferences.Key.dockClipboard) private var showClipboard = true
+    @AppStorage(Preferences.Key.dockConvert) private var showConvert = true
     @AppStorage(Preferences.Key.dockSystemStatus) private var showSystem = true
 
     private var hovered: String? {
@@ -73,6 +74,7 @@ struct IslandsDockView: View {
                 ShelfTile(shelf: shelf)
                 if showSystem { SystemStatusTile() }
                 if showClipboard { ClipboardTile() }
+                if showConvert { ConvertTile() }
                 if showDownloads { DownloadsTile() }
                 QuickTogglesButton(toggles: toggles)
                 TrashChip()
