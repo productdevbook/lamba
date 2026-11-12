@@ -66,8 +66,11 @@
 "convert.start" = "Dönüştür";
 "convert.title" = "Dönüştür";
 "convert.video.720" = "MP4 720p (en küçük)";
+"convert.video.av1" = "1080p'ye kadar AV1 (en küçük, yavaş)";
+"convert.video.hevc1080" = "1080p'ye kadar HEVC (küçük, hızlı)";
 "convert.video.mp4" = "1080p'ye kadar MP4 (her yerde açılır)";
 "convert.video.smaller" = "Küçült (HEVC, aynı çözünürlük)";
+"convert.video.webm" = "1080p'ye kadar WebM VP9 (web için)";
 "convert.videos" = "Videolar";
 "copied" = "Kopyalandı";
 "copy" = "Kopyala";

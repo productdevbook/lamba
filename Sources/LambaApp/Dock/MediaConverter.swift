@@ -3,6 +3,7 @@ import AVFoundation
 import ImageIO
 import SwiftUI
 import UniformTypeIdentifiers
+import libwebp
 
 extension L10n {
     static let convertTitle = tr("convert.title")
@@ -17,6 +18,9 @@ extension L10n {
     static let convertVideoSmaller = tr("convert.video.smaller")
     static let convertVideoMP4 = tr("convert.video.mp4")
     static let convertVideo720 = tr("convert.video.720")
+    static let convertVideoHEVC1080 = tr("convert.video.hevc1080")
+    static let convertVideoAV1 = tr("convert.video.av1")
+    static let convertVideoWebM = tr("convert.video.webm")
     static let convertStart = tr("convert.start")
     static let convertShow = tr("convert.show")
     static let convertDone = tr("convert.done")
@@ -33,7 +37,7 @@ final class MediaConverter: ObservableObject {
     static let shared = MediaConverter()
 
     enum ImageFormat: String, CaseIterable, Identifiable {
-        case same, jpeg, png, heic
+        case same, jpeg, png, heic, webp, avif
         var id: Self { self }
         var type: UTType? {
             switch self {
@@ -41,7 +45,25 @@ final class MediaConverter: ObservableObject {
             case .jpeg: return .jpeg
             case .png: return .png
             case .heic: return .heic
+            case .webp: return .webP
+            case .avif: return UTType("public.avif")
             }
+        }
+        var title: String {
+            switch self {
+            case .same: return L10n.convertSameFormat
+            case .jpeg: return "JPEG"
+            case .png: return "PNG"
+            case .heic: return "HEIC"
+            case .webp: return "WebP"
+            case .avif: return "AVIF"
+            }
+        }
+
+        /// AVIF needs an ImageIO that writes it; WebP is written by libwebp.
+        static var available: [ImageFormat] {
+            let writable = Set((CGImageDestinationCopyTypeIdentifiers() as? [String]) ?? [])
+            return allCases.filter { $0 != .avif || writable.contains("public.avif") }
         }
     }
 
@@ -52,12 +74,43 @@ final class MediaConverter: ObservableObject {
         case mp4
         /// H.264 MP4 at 720p: smallest.
         case p720
+        /// HEVC at up to 1080p: small and fast (hardware encoder).
+        case hevc1080
+        /// AV1 through ffmpeg (SVT-AV1): the best compression, slow.
+        case av1
+        /// VP9 WebM through ffmpeg: for the web.
+        case webm
         var id: Self { self }
         var exportPreset: String {
             switch self {
             case .smaller: return AVAssetExportPresetHEVCHighestQuality
-            case .mp4: return AVAssetExportPreset1920x1080
+            case .hevc1080: return AVAssetExportPresetHEVC1920x1080
+            case .mp4, .av1, .webm: return AVAssetExportPreset1920x1080
             case .p720: return AVAssetExportPreset1280x720
+            }
+        }
+        var usesFFmpeg: Bool { self == .av1 || self == .webm }
+        var fileExtension: String { self == .webm ? "webm" : "mp4" }
+        var title: String {
+            switch self {
+            case .smaller: return L10n.convertVideoSmaller
+            case .hevc1080: return L10n.convertVideoHEVC1080
+            case .mp4: return L10n.convertVideoMP4
+            case .p720: return L10n.convertVideo720
+            case .av1: return L10n.convertVideoAV1
+            case .webm: return L10n.convertVideoWebM
+            }
+        }
+
+        /// AV1 and WebM only when Homebrew's ffmpeg is installed with their encoders.
+        static var available: [VideoPreset] {
+            let encoders = FFmpeg.encoders
+            return allCases.filter { preset in
+                switch preset {
+                case .av1: return encoders.contains("libsvtav1")
+                case .webm: return encoders.contains("libvpx-vp9")
+                default: return true
+                }
             }
         }
     }
@@ -172,7 +225,7 @@ final class MediaConverter: ObservableObject {
         let base = input.file.deletingPathExtension().lastPathComponent
         let ext: String
         if isVideo {
-            ext = "mp4"
+            ext = videoPreset.fileExtension
         } else {
             ext = Self.imageType(for: input.file, format: imageFormat).preferredFilenameExtension ?? "jpg"
         }
@@ -212,7 +265,7 @@ final class MediaConverter: ObservableObject {
     private static func imageType(for url: URL, format: ImageFormat) -> UTType {
         if let chosen = format.type { return chosen }
         let writable = Set((CGImageDestinationCopyTypeIdentifiers() as? [String]) ?? [])
-        if let source = type(of: url), writable.contains(source.identifier), source != .gif { return source }
+        if let source = type(of: url), source == .webP || (writable.contains(source.identifier) && source != .gif) { return source }
         return .jpeg
     }
 
@@ -242,6 +295,10 @@ final class MediaConverter: ObservableObject {
 
         let type = imageType(for: source, format: format)
         try FileManager.default.createDirectory(at: output.deletingLastPathComponent(), withIntermediateDirectories: true)
+        if type == .webP {
+            try writeWebP(image, to: output, quality: quality)
+            return fileSize(output)
+        }
         guard let destination = CGImageDestinationCreateWithURL(output as CFURL, type.identifier as CFString, 1, nil) else {
             throw Failure(errorDescription: "Can't write \(type.preferredFilenameExtension ?? "image")")
         }
@@ -252,7 +309,28 @@ final class MediaConverter: ObservableObject {
         return fileSize(output)
     }
 
+    /// libwebp, lossy at the chosen quality (100 % is lossless).
+    private static func writeWebP(_ image: CGImage, to output: URL, quality: Double) throws {
+        let width = image.width, height = image.height
+        var pixels = [UInt8](repeating: 0, count: width * height * 4)
+        let drawn = pixels.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context = CGContext(data: buffer.baseAddress, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
+                                          space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return false }
+            context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+            return true
+        }
+        guard drawn else { throw Failure(errorDescription: "Couldn't read the pixels") }
+        var encoded: UnsafeMutablePointer<UInt8>?
+        let size = quality >= 0.999
+            ? WebPEncodeLosslessRGBA(pixels, Int32(width), Int32(height), Int32(width * 4), &encoded)
+            : WebPEncodeRGBA(pixels, Int32(width), Int32(height), Int32(width * 4), Float(quality * 100), &encoded)
+        defer { WebPFree(encoded) }
+        guard size > 0, let encoded else { throw Failure(errorDescription: "WebP encoding failed") }
+        try Data(bytes: encoded, count: size).write(to: output)
+    }
+
     private static func convertVideo(_ source: URL, to output: URL, preset: VideoPreset, progress: @escaping (Double) -> Void) async -> Result<Int64, Error> {
+        if preset.usesFFmpeg { return await FFmpeg.convert(source, to: output, preset: preset, progress: progress) }
         let asset = AVURLAsset(url: source)
         guard let session = AVAssetExportSession(asset: asset, presetName: preset.exportPreset) else {
             return .failure(Failure(errorDescription: "This video can't be converted"))
@@ -379,10 +457,7 @@ struct ConvertPopover: View {
                     GridRow {
                         Text(L10n.convertFormat).foregroundStyle(.secondary)
                         Picker("", selection: $converter.imageFormat) {
-                            Text(L10n.convertSameFormat).tag(MediaConverter.ImageFormat.same)
-                            Text("JPEG").tag(MediaConverter.ImageFormat.jpeg)
-                            Text("PNG").tag(MediaConverter.ImageFormat.png)
-                            Text("HEIC").tag(MediaConverter.ImageFormat.heic)
+                            ForEach(MediaConverter.ImageFormat.available) { Text($0.title).tag($0) }
                         }
                         .labelsHidden()
                     }
@@ -410,9 +485,7 @@ struct ConvertPopover: View {
         if converter.videoCount > 0 {
             section(L10n.convertVideos) {
                 Picker("", selection: $converter.videoPreset) {
-                    Text(L10n.convertVideoSmaller).tag(MediaConverter.VideoPreset.smaller)
-                    Text(L10n.convertVideoMP4).tag(MediaConverter.VideoPreset.mp4)
-                    Text(L10n.convertVideo720).tag(MediaConverter.VideoPreset.p720)
+                    ForEach(MediaConverter.VideoPreset.available) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.radioGroup)
                 .labelsHidden()

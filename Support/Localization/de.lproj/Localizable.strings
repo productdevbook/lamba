@@ -66,8 +66,11 @@
 "convert.start" = "Umwandeln";
 "convert.title" = "Umwandeln";
 "convert.video.720" = "MP4 720p (am kleinsten)";
+"convert.video.av1" = "AV1 bis 1080p (am kleinsten, langsam)";
+"convert.video.hevc1080" = "HEVC bis 1080p (klein, schnell)";
 "convert.video.mp4" = "MP4 bis 1080p (läuft überall)";
 "convert.video.smaller" = "Kleiner (HEVC, gleiche Auflösung)";
+"convert.video.webm" = "WebM VP9 bis 1080p (fürs Web)";
 "convert.videos" = "Videos";
 "copied" = "Kopiert";
 "copy" = "Kopieren";

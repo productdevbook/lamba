@@ -12,6 +12,8 @@ let package = Package(
     dependencies: [
         // Sparkle: signed automatic updates (feed on the CDN, see scripts/release.sh).
         .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.0"),
+        // WebP encoding; ImageIO only decodes WebP.
+        .package(url: "https://github.com/SDWebImage/libwebp-Xcode", from: "1.6.0"),
     ],
     targets: [
         // Thin C wrapper around the AppleSMC user client (LED, fans, any key).
@@ -24,7 +26,7 @@ let package = Package(
         // Menu bar app.
         .executableTarget(
             name: "LambaApp",
-            dependencies: ["LambaCore", "CSMC", .product(name: "Sparkle", package: "Sparkle")], // CSMC: LED probe, fan readings
+            dependencies: ["LambaCore", "CSMC", .product(name: "Sparkle", package: "Sparkle"), .product(name: "libwebp", package: "libwebp-Xcode")], // CSMC: LED probe, fan readings
             linkerSettings: [.unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"])]
         ),
         // Root launchd daemon; the only component that touches the SMC.

@@ -22,8 +22,10 @@ if let index = CommandLine.arguments.firstIndex(of: "--fans"), index + 1 < Comma
 if let index = CommandLine.arguments.firstIndex(of: "--convert") {
     let converter = MediaConverter.shared
     converter.set(CommandLine.arguments[(index + 1)...].map { URL(fileURLWithPath: $0) })
+    let env = ProcessInfo.processInfo.environment
     converter.maxPixels = 1280
-    converter.videoPreset = .p720
+    converter.imageFormat = env["IMAGE"].flatMap(MediaConverter.ImageFormat.init(rawValue:)) ?? .same
+    converter.videoPreset = env["VIDEO"].flatMap(MediaConverter.VideoPreset.init(rawValue:)) ?? .p720
     converter.start()
     while converter.isRunning { RunLoop.main.run(until: Date().addingTimeInterval(0.2)) }
     for job in converter.jobs { print(job.output.path, job.resultSize ?? -1, job.error ?? "") }
