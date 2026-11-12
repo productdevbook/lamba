@@ -1,0 +1,78 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0b0c;--fg:#ededea;--muted:#9a9a96;--line:rgba(255,255,255,.10);--card:#121214;--grid:rgba(255,255,255,.06);--glass:rgba(255,255,255,.06);--green:#34d36b;--orange:#ff9f1a}
+.light{--bg:#f6f6f3;--fg:#141414;--muted:#6b6b67;--line:rgba(0,0,0,.10);--card:#ffffff;--grid:rgba(0,0,0,.06);--glass:rgba(0,0,0,.035)}
+*{box-sizing:border-box;margin:0}
+body{width:1280px;height:640px;background:var(--bg);color:var(--fg);font-family:Inter,sans-serif;overflow:hidden;position:relative}
+.left{position:absolute;left:80px;top:0;bottom:0;width:600px;display:flex;flex-direction:column;justify-content:center}
+.word{font-family:'JetBrains Mono',monospace;font-size:28px;letter-spacing:-.5px;display:flex;align-items:center;gap:12px}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--green);box-shadow:0 0 14px 3px rgba(52,211,107,.55)}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:14px;letter-spacing:2.5px;color:var(--muted);margin-top:18px}
+h1{font-size:56px;line-height:1.04;letter-spacing:-2.2px;font-weight:700;margin-top:30px}
+p{font-size:20px;line-height:1.45;color:var(--muted);margin-top:26px;max-width:520px}
+.chips{display:flex;gap:10px;margin-top:34px;flex-wrap:wrap}
+.chip{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--glass);font-size:15px;font-weight:500;white-space:nowrap}
+.chip i{width:8px;height:8px;border-radius:50%}
+.right{position:absolute;left:700px;top:0;right:0;bottom:0;
+ background-image:radial-gradient(var(--grid) 1px,transparent 1px);background-size:14px 14px}
+.fig{position:absolute;border:1px solid var(--line);border-radius:16px;background:var(--card)}
+.cap{position:absolute;left:14px;bottom:10px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.5px;color:var(--muted)}
+/* magsafe */
+.cable{position:absolute;left:30px;top:96px;width:300px;height:22px;border-radius:11px;background:linear-gradient(var(--line),var(--line));}
+.plug{position:absolute;left:200px;top:78px;width:150px;height:58px;border-radius:14px;border:1.5px solid var(--muted);background:var(--card)}
+.led{position:absolute;left:318px;top:100px;width:14px;height:14px;border-radius:50%;background:var(--orange);box-shadow:0 0 22px 7px rgba(255,159,26,.55)}
+.led.g{background:var(--green);box-shadow:0 0 22px 7px rgba(52,211,107,.55)}
+/* dock */
+.dock{position:absolute;display:flex;gap:10px;align-items:center}
+.isl{height:58px;border-radius:18px;border:1px solid var(--line);background:var(--glass);display:flex;align-items:center;gap:8px;padding:0 10px}
+.pill{border-radius:999px;padding:0 16px 0 10px}
+.ring{width:28px;height:28px;border-radius:50%;background:conic-gradient(var(--green) 0 62%,var(--line) 62% 100%);display:grid;place-items:center}
+.ring b{width:22px;height:22px;border-radius:50%;background:var(--card);display:grid;place-items:center}
+.ring b:after{content:"";width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 8px 2px rgba(52,211,107,.6)}
+.time{font-family:Inter;font-weight:600;font-size:18px;font-variant-numeric:tabular-nums}
+.time small{font-size:12px;color:var(--muted);font-weight:500;margin-left:6px}
+.app{width:38px;height:38px;border-radius:10px;border:1.5px solid var(--muted);opacity:.55}
+.app.on{opacity:1;border-color:var(--fg)}
+.spark{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:#e07b4f;font-size:22px}
+/* list */
+.row{display:flex;align-items:center;gap:10px;font-size:14px;margin:0 18px;height:34px;border-bottom:1px dashed var(--line)}
+.row i{width:8px;height:8px;border-radius:50%}
+.row span{color:var(--muted);margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:12px}
+</style></head><body>
+<script>if(location.search.includes('light'))document.body.classList.add('light')</script>
+<div class="left">
+  <div class="word"><span class="dot"></span>lamba</div>
+  <div class="eyebrow">A CALMER MAC</div>
+  <h1>One light.<br>Everything in focus.</h1>
+  <p>Your MagSafe LED as a status light, a Pomodoro, a quieter Dock and Claude Code sessions, in one small app.</p>
+  <div class="chips">
+    <div class="chip"><i style="background:var(--green)"></i>MagSafe LED</div>
+    <div class="chip"><i style="background:#ff6b5b"></i>Pomodoro</div>
+    <div class="chip"><i style="background:#5b8cff"></i>Dock</div>
+    <div class="chip"><i style="background:#e07b4f"></i>Claude Code</div>
+  </div>
+</div>
+<div class="right">
+  <div class="fig" style="left:30px;top:44px;width:520px;height:200px">
+    <div class="cable"></div><div class="plug"></div><div class="led"></div>
+    <div style="position:absolute;left:370px;top:70px;font-family:'JetBrains Mono';font-size:12px;color:var(--muted);line-height:1.9">
+      <div><span style="color:var(--green)">●</span> done</div><div><span style="color:var(--orange)">●</span> needs you</div><div><span style="opacity:.5">●</span> off</div></div>
+    <div class="cap">FIG. 01 · LED</div>
+  </div>
+  <div class="fig" style="left:30px;top:264px;width:520px;height:150px">
+    <div class="dock" style="left:20px;top:30px">
+      <div class="isl pill"><div class="ring"><b></b></div><div class="time">18:42<small>14:57</small></div></div>
+      <div class="isl" style="padding:0 10px"><div class="spark">✻</div></div>
+      <div class="isl"><div class="app on"></div><div class="app"></div><div class="app on"></div><div class="app"></div></div>
+    </div>
+    <div class="cap">FIG. 02 · DOCK</div>
+  </div>
+  <div class="fig" style="left:30px;top:434px;width:520px;height:170px;padding-top:14px">
+    <div class="row"><i style="background:var(--orange)"></i>server · api<span>needs you</span></div>
+    <div class="row"><i style="background:#5b8cff"></i>This Mac · lamba<span>Editing Dock.swift</span></div>
+    <div class="row" style="opacity:.55"><i style="background:var(--green)"></i>This Mac · docs<span>done 2m ago</span></div>
+    <div class="cap">FIG. 03 · CLAUDE</div>
+  </div>
+</div>
+</body></html>

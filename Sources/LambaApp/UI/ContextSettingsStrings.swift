@@ -1,0 +1,73 @@
+// Accessors for the strings in scripts/strings.d/ctxsettings.py.
+
+extension L10n {
+    static var ctxTab: String { tr("ctxset.tab") }
+    static var ctxListTitle: String { tr("ctxset.list.title") }
+    static var ctxNow: String { tr("ctxset.now") }
+    static var ctxNew: String { tr("ctxset.new") }
+    static var ctxNewName: String { tr("ctxset.newName") }
+    static var ctxListNote1: String { tr("ctxset.listNote1") }
+    static var ctxListNote2: String { tr("ctxset.listNote2") }
+    static var ctxSwitchTo: String { tr("ctxset.switchTo") }
+    static var ctxDelete: String { tr("ctxset.delete") }
+    static func ctxDeleteTitle(_ value: String) -> String { format("ctxset.deleteTitle", value) }
+    static var ctxDeleteBody: String { tr("ctxset.deleteBody") }
+    static var ctxDeleteConfirm: String { tr("ctxset.deleteConfirm") }
+    static var ctxCancel: String { tr("ctxset.cancel") }
+    static var ctxLastOne: String { tr("ctxset.lastOne") }
+    static var ctxName: String { tr("ctxset.name") }
+    static var ctxColor: String { tr("ctxset.color") }
+    static var ctxApps: String { tr("ctxset.apps") }
+    static var ctxAppsEmpty: String { tr("ctxset.appsEmpty") }
+    static var ctxAddApp: String { tr("ctxset.addApp") }
+    static func ctxRemoveApp(_ value: String) -> String { format("ctxset.removeApp", value) }
+    static var ctxMoveLeft: String { tr("ctxset.moveLeft") }
+    static var ctxMoveRight: String { tr("ctxset.moveRight") }
+    static var ctxShowOthers: String { tr("ctxset.showOthers") }
+    static var ctxRules: String { tr("ctxset.rules") }
+    static var ctxRulesEmpty: String { tr("ctxset.rulesEmpty") }
+    static var ctxAddRule: String { tr("ctxset.addRule") }
+    static var ctxRuleEnabled: String { tr("ctxset.ruleEnabled") }
+    static var ctxDeleteRule: String { tr("ctxset.deleteRule") }
+    static var ctxRuleTime: String { tr("ctxset.ruleTime") }
+    static var ctxRuleDisplay: String { tr("ctxset.ruleDisplay") }
+    static var ctxRuleWifi: String { tr("ctxset.ruleWifi") }
+    static var ctxRuleApp: String { tr("ctxset.ruleApp") }
+    static var ctxRuleMirroring: String { tr("ctxset.ruleMirroring") }
+    static var ctxFrom: String { tr("ctxset.from") }
+    static var ctxTo: String { tr("ctxset.to") }
+    static var ctxDisplayName: String { tr("ctxset.displayName") }
+    static var ctxDisplayPick: String { tr("ctxset.displayPick") }
+    static var ctxDisplayOther: String { tr("ctxset.displayOther") }
+    static var ctxSsid: String { tr("ctxset.ssid") }
+    static func ctxSsidCurrent(_ value: String) -> String { format("ctxset.ssidCurrent", value) }
+    static var ctxChooseApp: String { tr("ctxset.chooseApp") }
+    static var ctxNoApp: String { tr("ctxset.noApp") }
+    static var ctxMirroringHint: String { tr("ctxset.mirroringHint") }
+    static var ctxLook: String { tr("ctxset.look") }
+    static var ctxWallpaper: String { tr("ctxset.wallpaper") }
+    static var ctxWallpaperKeep: String { tr("ctxset.wallpaperKeep") }
+    static var ctxWallpaperOwn: String { tr("ctxset.wallpaperOwn") }
+    static var ctxWallpaperImage: String { tr("ctxset.wallpaperImage") }
+    static var ctxAppearance: String { tr("ctxset.appearance") }
+    static var ctxAppearanceKeep: String { tr("ctxset.appearanceKeep") }
+    static var ctxAppearanceLight: String { tr("ctxset.appearanceLight") }
+    static var ctxAppearanceDark: String { tr("ctxset.appearanceDark") }
+    static var ctxTint: String { tr("ctxset.tint") }
+    static var ctxFlash: String { tr("ctxset.flash") }
+    static var ctxFlashGreen: String { tr("ctxset.flashGreen") }
+    static var ctxFlashOrange: String { tr("ctxset.flashOrange") }
+    static var ctxFlashNone: String { tr("ctxset.flashNone") }
+    static var ctxShortcut: String { tr("ctxset.shortcut") }
+    static var ctxShortcutNone: String { tr("ctxset.shortcutNone") }
+    static var ctxShortcutHint: String { tr("ctxset.shortcutHint") }
+    static var ctxOpenApps: String { tr("ctxset.openApps") }
+    static var ctxHideApps: String { tr("ctxset.hideApps") }
+    static var ctxListEmpty: String { tr("ctxset.listEmpty") }
+    static var ctxTryNow: String { tr("ctxset.tryNow") }
+    static var ctxDefault: String { tr("ctxset.default") }
+    static var ctxDndTitle: String { tr("ctxset.dnd.title") }
+    static var ctxDndOn: String { tr("ctxset.dnd.on") }
+    static var ctxDndOff: String { tr("ctxset.dnd.off") }
+    static var ctxDndFooter: String { tr("ctxset.dnd.footer") }
+}
