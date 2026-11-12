@@ -146,7 +146,12 @@ struct ClassicDockView: View {
         switch slot {
         case let .app(item):
             AppTile(item: item, size: size, isLaunching: launching.contains(item.path), dock: dock) {
-                if !item.isRunning { launching.insert(item.path) }
+                if !item.isRunning {
+                    // Some apps (Apps, Launchpad) never show up as running; stop pulsing after a while.
+                    let path = item.path
+                    launching.insert(path)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 8) { launching.remove(path) }
+                }
                 dock.open(item)
             }
             .overlay(alignment: .top) { if showsLabel { NameLabel(text: item.name).offset(y: -30) } }

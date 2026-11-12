@@ -94,7 +94,12 @@ struct StripDockView: View {
             isLaunching: launching.contains(item.path),
             dock: dock,
             open: {
-                if !item.isRunning { launching.insert(item.path) }
+                if !item.isRunning {
+                    // Some apps (Apps, Launchpad) never show up as running; stop pulsing after a while.
+                    let path = item.path
+                    launching.insert(path)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 8) { launching.remove(path) }
+                }
                 dock.open(item)
             }
         )
